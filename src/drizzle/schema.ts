@@ -13,43 +13,99 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+const createdAt = timestamp('created_at').notNull().defaultNow()
+const updatedAt = timestamp('updated_at')
+  .$onUpdate(() => new Date())
 
-// ===== MEMBERS =====
+// --- MEMBERS (used as users table) ---
 export const members = pgTable("members", {
   id: uuid("id").defaultRandom().primaryKey(),
+
+  // Auth.js-required fields:
+  email: text("email").unique(), // required by Auth.js
+  emailVerified: timestamp("email_verified", ),
+  image: text("image"), // maps from profileImage
+
+  // Auth extension
+  passwordHash: text("password_hash").notNull().unique(), // for credentials provider
+  isVerified: boolean("is_verified").default(false),
+  role: text("role").default("member"),
+  lastLoginAt: timestamp("last_login_at", ),
+
+  // Existing fields (still included)
   membershipId: text("membership_id").notNull().unique(),
   fullName: text("full_name").notNull(),
   nrcNumber: text("nrc_number").notNull().unique(),
   dateOfBirth: date("date_of_birth").notNull(),
   gender: text("gender").default("Male"),
   phone: text("phone").notNull(),
-  email: text("email"),
   residentialAddress: text("residential_address").notNull(),
+
   latitude: numeric("latitude", { precision: 10, scale: 8 }),
   longitude: numeric("longitude", { precision: 11, scale: 8 }),
+
   province: text("province").notNull(),
   district: text("district").notNull(),
   constituency: text("constituency").notNull(),
   ward: text("ward").notNull(),
   branch: text("branch").notNull(),
   section: text("section").notNull(),
+
   education: text("education"),
   occupation: text("occupation"),
   skills: text("skills").array(),
+
   membershipLevel: text("membership_level").default("General"),
   partyRole: text("party_role"),
   partyCommitment: text("party_commitment"),
   status: text("status").default("Pending Section Review"),
+
   profileImage: text("profile_image"),
-  registrationDate: timestamp("registration_date", { withTimezone: true }).defaultNow(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  registrationDate: timestamp("registration_date", ).defaultNow(),
+  createdAt,
+  updatedAt,
+  
   notificationPreferences: jsonb("notification_preferences").default({
     sms: true,
     push: true,
     email: true,
   }),
 });
+
+export const sessions = pgTable("sessions", {
+  sessionToken: text("session_token").notNull().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => members.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
+
+// ===== ACCOUNTS (for OAuth logins, optional) =====
+export const accounts = pgTable(
+  "accounts",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+
+    type: text("type").notNull(), // "oauth", "oidc", "email", etc.
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => ({
+    compoundKey: primaryKey(account.provider, account.providerAccountId),
+  })
+);
+
 
 // ===== MEMBERSHIP CARDS =====
 export const membershipCards = pgTable("membership_cards", {
@@ -59,11 +115,12 @@ export const membershipCards = pgTable("membership_cards", {
   issueDate: date("issue_date").defaultNow(),
   expiryDate: date("expiry_date"),
   qrCode: text("qr_code"),
-  status: text("status").default("Active"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  status: text("status").default("Active"),  
+  createdAt,
+  updatedAt,
   renewalReminderSent: boolean("renewal_reminder_sent").default(false),
-  renewalReminderSentAt: timestamp("renewal_reminder_sent_at", { withTimezone: true }),
-  lastRenewedAt: timestamp("last_renewed_at", { withTimezone: true }),
+  renewalReminderSentAt: timestamp("renewal_reminder_sent_at", ),
+  lastRenewedAt: timestamp("last_renewed_at", ),
 });
 
 // ===== EVENTS =====
@@ -83,8 +140,8 @@ export const events = pgTable("events", {
   expectedAttendees: integer("expected_attendees").default(0),
   actualAttendees: integer("actual_attendees").default(0),
   status: text("status").default("Planned"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  createdAt,
+  updatedAt,
 });
 
 // ===== EVENT RSVPS =====
@@ -95,12 +152,12 @@ export const eventRsvps = pgTable(
     eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
     memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     response: text("response").default("Maybe"),
-    respondedAt: timestamp("responded_at", { withTimezone: true }).defaultNow(),
+    respondedAt: timestamp("responded_at", ).defaultNow(),
     checkedIn: boolean("checked_in").default(false),
-    checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
+    checkedInAt: timestamp("checked_in_at", ),
     notes: text("notes"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  createdAt,
+  updatedAt,
   },
   (table) => ({
     uniqueEventMember: uniqueIndex("event_rsvps_event_id_member_id_key").on(
@@ -122,9 +179,9 @@ export const communications = pgTable("communications", {
   failedCount: integer("failed_count").default(0),
   status: text("status").default("Draft"),
   sentBy: text("sent_by"),
-  sentAt: timestamp("sent_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  sentAt: timestamp("sent_at", ),
+  createdAt,
+  updatedAt,
 });
 
 // ===== COMMUNICATION RECIPIENTS =====
@@ -137,10 +194,11 @@ export const communicationRecipients = pgTable("communication_recipients", {
     .notNull()
     .references(() => members.id, { onDelete: "cascade" }),
   status: text("status").default("Pending"),
-  sentAt: timestamp("sent_at", { withTimezone: true }),
-  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  sentAt: timestamp("sent_at", ),
+  deliveredAt: timestamp("delivered_at", ),
   errorMessage: text("error_message"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  createdAt,
+  updatedAt,
 });
 
 // ===== DISCIPLINARY CASES =====
@@ -156,9 +214,57 @@ export const disciplinaryCases = pgTable("disciplinary_cases", {
   dateIncident: date("date_incident"),
   reportingOfficer: text("reporting_officer").notNull(),
   assignedOfficer: text("assigned_officer"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  createdAt,
+  updatedAt,
 });
+// --- PROVINCES ---
+export const provinces = pgTable("provinces", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt,
+  updatedAt,
+});
+
+
+// --- DISTRICTS ---
+export const districts = pgTable("districts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  provinceId: uuid("province_id")
+    .notNull()
+    .references(() => provinces.id, { onDelete: "cascade" }),
+  createdAt,
+  updatedAt,
+});
+
+
+// --- VIOLATION TYPES ---
+export const violationTypes = pgTable("violation_types", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt,
+  updatedAt,
+});
+
+
+// --- UPND POSITIONS ---
+export const upndPositions = pgTable("upnd_positions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  level: text("level"), // optional: National, Provincial, etc.
+  createdAt,
+  updatedAt,
+});
+
+
+// --- POLICY AREAS ---
+export const policyAreas = pgTable("policy_areas", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt,
+  updatedAt,
+});
+
 
 // ===== RELATIONS =====
 export const membersRelations = relations(members, ({ many }) => ({
@@ -209,5 +315,18 @@ export const communicationRecipientsRelations = relations(communicationRecipient
   member: one(members, {
     fields: [communicationRecipients.memberId],
     references: [members.id],
+  }),
+}));
+
+// Relation (Province → Districts)
+export const provinceRelations = relations(provinces, ({ many }) => ({
+  districts: many(districts),
+}));
+
+// Relation (District → Province)
+export const districtRelations = relations(districts, ({ one }) => ({
+  province: one(provinces, {
+    fields: [districts.provinceId],
+    references: [provinces.id],
   }),
 }));

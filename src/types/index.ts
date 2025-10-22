@@ -28,7 +28,7 @@ export interface UPNDMember {
 export interface Endorsement {
   endorserName: string;
   membershipId: string;
-  endorsementDate: string;
+  endorsementDate: Date;
 }
 
 export type MembershipStatus = 

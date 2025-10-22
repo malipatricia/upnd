@@ -197,17 +197,6 @@ export function DisciplinaryModal({ case: disciplinaryCase, onClose, onUpdateCas
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Update Status
                 </label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-                >
-                  {statusOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 
