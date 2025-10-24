@@ -24,11 +24,13 @@ import {
   FileText,
   Settings
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export default function Dashboard() {
   const { members, statistics, loading } = useMembers();
   const { cases } = useDisciplinary();
   const { user, hasPermission } = useAuth();
+  const {data: session} = useSession()
   const [selectedDateRange, setSelectedDateRange] = useState('last30');
   const [notifications, setNotifications] = useState([
     {
@@ -166,7 +168,8 @@ export default function Dashboard() {
       onClick: () => console.log('Navigate to settings')
     }
   ];
-  console.log(user)
+  const session_user = session?.user
+  console.log(session_user)
 
   return (
     <div className="p-6 space-y-6">
