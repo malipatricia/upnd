@@ -92,7 +92,7 @@ const permissions: Record<UserRole, string[]> = {
   ]
 };
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UPNDUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 

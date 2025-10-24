@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react';
 import { useMembers } from '../../hooks/useMembers';
 import { useDisciplinary } from '../../hooks/useDisciplinary';
