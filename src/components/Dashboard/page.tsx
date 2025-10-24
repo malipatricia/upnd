@@ -23,7 +23,7 @@ import {
   Settings
 } from 'lucide-react';
 
-export function Dashboard() {
+export default function Dashboard() {
   const { members, statistics, loading } = useMembers();
   const { cases } = useDisciplinary();
   const { user, hasPermission } = useAuth();
@@ -164,6 +164,7 @@ export function Dashboard() {
       onClick: () => console.log('Navigate to settings')
     }
   ];
+  console.log(user)
 
   return (
     <div className="p-6 space-y-6">

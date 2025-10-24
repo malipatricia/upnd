@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import { LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { supabase } from '../../lib/supabase';
 import { MemberMapData, MembershipStatus } from '../../types';
 import { MapPin, Users, Filter, Download, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 import { zambia } from '../../data/zambia';
@@ -53,13 +52,7 @@ export function GeoMapping() {
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('members')
-        .select('id, full_name, membership_id, latitude, longitude, province, district, constituency, status, membership_level')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
-
-      if (error) throw error;
+   const data = [{}]
 
       const mappedMembers: MemberMapData[] = (data || []).map((m: any) => ({
         id: m.id,

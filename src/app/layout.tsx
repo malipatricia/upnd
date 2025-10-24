@@ -1,36 +1,24 @@
-import type { Metadata } from "next";
+// app/layout.tsx (Server Component)
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
+import ClientProviders from "./clientProvider"; // ✅ client wrapper
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const dynamic = 'force-dynamic';
-
-export const metadata: Metadata = {
+export const metadata = {
   title: "UPND Membership System",
   description: "UPND Membership Management System",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
-            {children}
-          </div>
-          <Toaster 
-          position="top-right"
-          richColors={true}
-          duration={4000}
-          />
-        </AuthProvider>
+        <ClientProviders>
+          <div className="min-h-screen bg-gray-50">{children}</div>
+          <Toaster position="top-right" richColors duration={4000} />
+        </ClientProviders>
       </body>
     </html>
   );

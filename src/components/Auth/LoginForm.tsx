@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { loginSchema } from "@/schema/schema";
 import Link from "next/link";
+import { toast } from "sonner";
 
 type LoginSchema = z.infer<typeof loginSchema>;
 
@@ -52,8 +53,10 @@ export function LoginForm() {
 
     if (result?.error) {
       setError("Invalid email or password");
+      toast.error('Invalid email or password')
     } else {
-      console.log('redirecting to dashboard')
+      await getSession()
+      toast.success('Redirecting...')
       router.push("/dashboard");
     }
   };

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { Mail, MessageSquare, Send, Users, Filter, History, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { NewCommunicationModal } from './NewCommunicationModal';
 import { CommunicationHistory } from './CommunicationHistory';
@@ -30,20 +29,7 @@ export function Communications() {
   }, []);
 
   const loadCommunications = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('communications')
-        .select('*')
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setCommunications(data || []);
-    } catch (error) {
-      console.error('Error loading communications:', error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const getFilteredCommunications = () => {

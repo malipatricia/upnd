@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { X, Send, Users, Filter } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -26,25 +25,6 @@ export function NewCommunicationModal({ onClose, onSuccess }: NewCommunicationMo
   }, [filterProvince, filterStatus, filterMembershipLevel]);
 
   const calculateRecipients = async () => {
-    try {
-      let query = supabase.from('members').select('id', { count: 'exact', head: true });
-
-      if (filterProvince !== 'all') {
-        query = query.eq('province', filterProvince);
-      }
-      if (filterStatus !== 'all') {
-        query = query.eq('status', filterStatus);
-      }
-      if (filterMembershipLevel !== 'all') {
-        query = query.eq('membership_level', filterMembershipLevel);
-      }
-
-      const { count, error } = await query;
-      if (error) throw error;
-      setRecipientCount(count || 0);
-    } catch (error) {
-      console.error('Error calculating recipients:', error);
-    }
   };
 
   const handleSend = async () => {
@@ -67,47 +47,6 @@ export function NewCommunicationModal({ onClose, onSuccess }: NewCommunicationMo
         membershipLevel: filterMembershipLevel !== 'all' ? filterMembershipLevel : null
       };
 
-      const { data: commData, error: commError } = await supabase
-        .from('communications')
-        .insert({
-          type,
-          subject: type === 'Email' || type === 'Both' ? subject : null,
-          message,
-          recipient_filter: recipientFilter,
-          recipients_count: recipientCount,
-          sent_count: recipientCount,
-          failed_count: 0,
-          status: 'Sent',
-          sent_by: user?.name || 'Admin',
-          sent_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (commError) throw commError;
-
-      let query = supabase.from('members').select('id');
-      if (filterProvince !== 'all') query = query.eq('province', filterProvince);
-      if (filterStatus !== 'all') query = query.eq('status', filterStatus);
-      if (filterMembershipLevel !== 'all') query = query.eq('membership_level', filterMembershipLevel);
-
-      const { data: members, error: membersError } = await query;
-      if (membersError) throw membersError;
-
-      const recipients = (members || []).map(member => ({
-        communication_id: commData.id,
-        member_id: member.id,
-        status: 'Sent',
-        sent_at: new Date().toISOString()
-      }));
-
-      if (recipients.length > 0) {
-        const { error: recipientsError } = await supabase
-          .from('communication_recipients')
-          .insert(recipients);
-
-        if (recipientsError) throw recipientsError;
-      }
 
       onSuccess();
     } catch (error) {

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { Dashboard } from '../Dashboard/Dashboard';
+import Dashboard from '../Dashboard/page';
 import { MembersList } from '../Members/MembersList';
 import { MemberApproval } from '../Members/MemberApproval';
 import { EventsManagement } from '../Events/EventsManagement';

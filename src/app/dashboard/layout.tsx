@@ -1,26 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useEffect } from 'react';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { isAuthenticated } = useAuth();
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/admin');
-    }
-  }, [isAuthenticated, router]);
+    if (status === 'unauthenticated') router.push('/admin');
+  }, [status, router]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (status === 'loading') return <div>Loading...</div>;
+  if (!session) return null;
 
   return <>{children}</>;
 }
