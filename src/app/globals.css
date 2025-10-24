@@ -79,3 +79,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Ensure sonner's colors aren't overridden */
+.sonner-toast {
+  background-color: unset !important;
+  color: unset !important;
+}

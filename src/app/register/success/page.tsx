@@ -1,29 +1,22 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { CheckCircle, Shield, Clock, Phone, Mail, Home } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import useSWR from 'swr';
+import { fetcher } from '@/services/fetcher';
+import { UPNDMember } from '@/types';
 
-interface RegistrationData {
-  fullName: string;
-  membershipId: string;
-  registrationDate: string;
-}
+export default function RegistrationSuccess() {
+  const params = useSearchParams();
+  const id = params.get('memberId');
+  const memberId = id ? decodeURIComponent(id) : '';
 
-export function RegistrationSuccess() {
-  const [registrationData, setRegistrationData] = useState<RegistrationData | null>(null);
-
-  useEffect(() => {
-    const storedData = localStorage.getItem('upnd_registration_data');
-    if (storedData) {
-      try {
-        const data = JSON.parse(storedData);
-        setRegistrationData(data);
-      } catch (error) {
-        console.error('Failed to parse registration data:', error);
-      }
-    }
-  }, []);
+  const { data: member, error } = useSWR<UPNDMember[]>(
+    memberId ? `/api/members/${memberId}` : null,
+    fetcher
+  );
 
   const approvalSteps = [
     { step: 1, title: 'Application Received', status: 'completed', description: 'Your application has been successfully submitted' },
@@ -34,12 +27,22 @@ export function RegistrationSuccess() {
     { step: 6, title: 'Final Approval', status: 'pending', description: 'Your UPND membership will be officially confirmed' }
   ];
 
-  if (!registrationData) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Registration data not found.</p>
+          <p className="text-red-600 mb-4">Failed to load registration data.</p>
           <Link href="/" className="text-upnd-red hover:underline">Return to Home</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Loading registration data...</p>
         </div>
       </div>
     );
@@ -64,7 +67,7 @@ export function RegistrationSuccess() {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Welcome to UPND, {registrationData.fullName}!
+            Welcome to UPND, {member[0].fullName}!
           </h1>
           <p className="text-xl text-white/90 mb-2">Your membership application has been successfully submitted</p>
           <p className="text-2xl font-bold text-upnd-yellow">Unity, Work, Progress</p>
@@ -76,13 +79,13 @@ export function RegistrationSuccess() {
             <div>
               <h3 className="text-lg font-bold text-white mb-2">Membership ID</h3>
               <p className="text-2xl font-mono text-upnd-yellow bg-white/10 rounded-lg py-2 px-4">
-                {registrationData.membershipId}
+                {member[0].membershipId}
               </p>
             </div>
             <div>
               <h3 className="text-lg font-bold text-white mb-2">Registration Date</h3>
               <p className="text-xl text-white/90">
-                {new Date(registrationData.registrationDate).toLocaleDateString()}
+                {member[0].registrationDate ? new Date(member[0].registrationDate).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div>
@@ -97,7 +100,7 @@ export function RegistrationSuccess() {
           <h2 className="text-3xl font-bold text-white text-center mb-8">UPND Approval Process</h2>
           
           <div className="space-y-6">
-            {approvalSteps.map((item, index) => (
+            {approvalSteps.map((item) => (
               <div key={item.step} className="flex items-start space-x-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                   item.status === 'completed' 

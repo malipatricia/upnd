@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Shield, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, Shield, AlertCircle, CheckCircle, X, InfoIcon } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -34,17 +34,15 @@ import { DatePicker } from '@/services/date';
 import { Textarea } from '../ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '../ui/label';
-import { RegistrationSuccess } from './RegistrationSuccess';
+import { toast } from 'sonner';
 
 export default function RegistrationForm() {
   const [showPass, setShowPass] = React.useState(false);
   const [province, setProvince] = React.useState("");
   const [id, setId] = React.useState("");
   const [buttonText, setButtonText] = React.useState("Submit UPND Membership Application");
-
-  React.useEffect(() => {
-    setId(crypto.randomUUID());
-  }, []);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const form = useForm<z.infer<typeof addMemberSchema>>({
     resolver: zodResolver(addMemberSchema),
@@ -73,7 +71,22 @@ export default function RegistrationForm() {
     acceptConstitution: false
     },
   });
-  console.log(form.formState.errors, form.getValues())
+
+  // watch for zod validation errors
+  useEffect(() => {
+    if (!mounted) return;
+
+    const errors = form.formState.errors;
+    const hasErrors = Object.keys(errors).length > 0;
+
+    if (hasErrors) {
+      // Collect the first few field names for readability
+      const firstFew = Object.keys(errors).slice(0, 3).join(", ");
+      toast.error(
+        `Please correct ${firstFew}${Object.keys(errors).length > 3 ? "..." : ""}`
+      );
+    }
+  }, [mounted, form.formState.errors]);
 
   async function onSubmit(values: z.infer<typeof addMemberSchema>) {
     // generate membership ID
@@ -86,10 +99,15 @@ export default function RegistrationForm() {
       const res = await registerMember(values);
 
       if (res?.error) {
+        console.log(res.error)
+        toast.error(`Error: ${res.error}`);
         form.setError("root", { message: res.error });
         setButtonText('Unsuccessful')
       } else {
+        toast.success('Registration successful');
         setButtonText('Successful')
+        const id = res.memberId !== undefined?res.memberId:''
+        router.push(`/register/success?memberId=${encodeURIComponent(id)}`)
       }
     } catch (err) {
       console.error(err);
@@ -547,7 +565,7 @@ export default function RegistrationForm() {
             {buttonText}
           </Button>
 
-          {form.formState.errors.root && (
+          {/* {form.formState.errors.root && (
             <div className="border border-destructive bg-destructive/20 text-destructive p-2 rounded-md flex">
               <X className='mx-5'/>
               {form.formState.errors.root.message}
@@ -558,7 +576,7 @@ export default function RegistrationForm() {
               <CheckCircle className='mx-5'/>
               Member added successfully
             </div>
-          )}
+          )} */}
 
           {/* Submit Button */}
           <div className="text-center">
@@ -578,14 +596,17 @@ export default function RegistrationForm() {
             </p>
           </div>
         </form>
+{/* 
           {Object.keys(form.formState.errors).length > 0 && (
-            <div className="mt-4 border border-red-300 rounded-md bg-red-50 p-2 text-sm text-red-600">
-              <strong>Validation errors:</strong>
+            <div className="mt-4 border border-red-300 flex rounded-md bg-red-50 p-2 text-sm text-red-600">
+              <InfoIcon className='mx-5'/>
+              <strong>Please check that all details are correct.</strong>
               <pre className="text-xs mt-1">
                 {JSON.stringify(form.formState.errors, null, 2)}
               </pre>
             </div>
           )}
+           */}
         </Form>
       </div>
     </div>

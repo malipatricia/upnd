@@ -21,12 +21,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-// 🧠 Zod Schema
-const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+import { loginSchema } from "@/schema/schema";
+import Link from "next/link";
 
 type LoginSchema = z.infer<typeof loginSchema>;
 
@@ -76,11 +72,12 @@ export function LoginForm() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 p-2 shadow-lg">
+            <Link href='/'>
             <img
               src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Logo_of_the_United_Party_for_National_Development.svg/400px-Logo_of_the_United_Party_for_National_Development.svg.png"
               alt="UPND Logo"
               className="w-full h-full object-contain"
-            />
+            /></Link>
           </div>
           <h1 className="text-2xl font-bold text-upnd-black mb-2">
             UPND Admin Portal
