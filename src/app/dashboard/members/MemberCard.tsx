@@ -6,9 +6,11 @@ interface MemberCardProps {
   member: UPNDMember;
   onViewDetails: () => void;
   onUpdateStatus: (memberId: string, status: MembershipStatus) => void;
+  onApproveMember?: (member: UPNDMember) => void;
+  canApprove?: boolean;
 }
 
-export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCardProps) {
+export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMember, canApprove }: MemberCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Approved':
@@ -131,10 +133,10 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
           <span>View Details</span>
         </button>
 
-        {member.status !== 'Approved' && member.status !== 'Rejected' && (
+        {member.status !== 'Approved' && member.status !== 'Rejected' && canApprove && onApproveMember && (
           <div className="flex space-x-2">
             <button
-              onClick={() => onUpdateStatus(member.id, 'Approved')}
+              onClick={() => onApproveMember(member)}
               className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
             >
               Approve

@@ -209,6 +209,59 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     }
   };
 
+  const approveMember = async (memberId: string, currentStatus: MembershipStatus, userRole: string) => {
+    let nextStatus: MembershipStatus;
+    
+    // Determine next status based on current status and user role
+    if (userRole === 'admin') {
+      // Admin can approve at any level and skip to final approval
+      nextStatus = 'Approved';
+    } else {
+      // Regular approval workflow
+      switch (currentStatus) {
+        case 'Pending Section Review':
+          if (userRole === 'sectionadmin') {
+            nextStatus = 'Pending Branch Review';
+          } else {
+            throw new Error('Only section admins can approve at section level');
+          }
+          break;
+        case 'Pending Branch Review':
+          if (userRole === 'branchadmin') {
+            nextStatus = 'Pending Ward Review';
+          } else {
+            throw new Error('Only branch admins can approve at branch level');
+          }
+          break;
+        case 'Pending Ward Review':
+          if (userRole === 'wardadmin') {
+            nextStatus = 'Pending District Review';
+          } else {
+            throw new Error('Only ward admins can approve at ward level');
+          }
+          break;
+        case 'Pending District Review':
+          if (userRole === 'districtadmin') {
+            nextStatus = 'Pending Provincial Review';
+          } else {
+            throw new Error('Only district admins can approve at district level');
+          }
+          break;
+        case 'Pending Provincial Review':
+          if (userRole === 'provinceadmin') {
+            nextStatus = 'Approved';
+          } else {
+            throw new Error('Only province admins can approve at province level');
+          }
+          break;
+        default:
+          throw new Error('Invalid status for approval');
+      }
+    }
+
+    await updateMemberStatus(memberId, nextStatus);
+  };
+
   const getMemberById = (id: string): UPNDMember | undefined => {
     return members.find(member => member.id === id);
   };
@@ -242,6 +295,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     loading,
     addMember,
     updateMemberStatus,
+    approveMember,
     getMemberById,
     bulkApprove
   };

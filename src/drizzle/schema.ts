@@ -29,7 +29,7 @@ export const members = pgTable("members", {
   // Auth extension
   passwordHash: text("password_hash").notNull().unique(), // for credentials provider
   isVerified: boolean("is_verified").default(false),
-  role: text("role").default("member"),
+  role: text("role").default("member").$type<'admin' | 'member' | 'sectionadmin' | 'branchadmin' | 'wardadmin' | 'districtadmin' | 'provinceadmin'>(),
   lastLoginAt: timestamp("last_login_at", ),
 
   // Existing fields (still included)
@@ -58,7 +58,7 @@ export const members = pgTable("members", {
   membershipLevel: text("membership_level").default("General"),
   partyRole: text("party_role"),
   partyCommitment: text("party_commitment"),
-  status: text("status").default("Pending Section Review"),
+  status: text("status").default("Pending Section Review").$type<'Pending Section Review' | 'Pending Branch Review' | 'Pending Ward Review' | 'Pending District Review' | 'Pending Provincial Review' | 'Approved' | 'Rejected' | 'Suspended' | 'Expelled'>(),
 
   profileImage: text("profile_image"),
   registrationDate: timestamp("registration_date", ).defaultNow(),
