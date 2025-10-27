@@ -249,3 +249,43 @@ export async function getDisciplinaryCases(startDate?: Date, endDate?: Date) {
     return [];
   }
 }
+
+export async function updateMemberStatus(memberId: string, status: string) {
+  try {
+    const result = await db
+      .update(members)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(eq(members.id, memberId))
+      .returning();
+
+    if (result.length === 0) {
+      return { error: 'Member not found' };
+    }
+
+    return { success: true, member: result[0] };
+  } catch (error) {
+    console.error('Error updating member status:', error);
+    return { error: 'Failed to update member status' };
+  }
+}
+
+export async function bulkUpdateMemberStatus(memberIds: string[], status: string) {
+  try {
+    const result = await db
+      .update(members)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(sql`${members.id} = ANY(${memberIds})`)
+      .returning();
+
+    return { success: true, updatedCount: result.length };
+  } catch (error) {
+    console.error('Error bulk updating member status:', error);
+    return { error: 'Failed to bulk update member status' };
+  }
+}

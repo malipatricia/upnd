@@ -73,3 +73,39 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: true, message: err?.message ?? "Unknown" }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { memberIds, status } = body;
+
+    if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
+      return NextResponse.json({ error: 'memberIds array is required' }, { status: 400 });
+    }
+
+    if (!status) {
+      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
+    }
+
+    // Update multiple members' status
+    const result = await db
+      .update(members)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(sql`${members.id} = ANY(${memberIds})`)
+      .returning();
+
+    return NextResponse.json({ 
+      success: true, 
+      updatedCount: result.length,
+      members: result
+    });
+  } catch (error) {
+    console.error('Error bulk updating member status:', error);
+    return NextResponse.json({ 
+      error: 'Failed to bulk update member status' 
+    }, { status: 500 });
+  }
+}
