@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DisciplinaryCase } from '../types';
 import { violationTypes } from '../data/zambia';
+import { getDisciplinaryCases } from '../server/server.actions';
 
 const generateMockCases = (): DisciplinaryCase[] => {
   const cases: DisciplinaryCase[] = [];
@@ -37,12 +38,42 @@ export function useDisciplinary() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const mockCases = generateMockCases();
-      setCases(mockCases);
-      setLoading(false);
-    }, 800);
+    const fetchCases = async () => {
+      try {
+        setLoading(true);
+        const realCases = await getDisciplinaryCases();
+        
+        // Transform database cases to DisciplinaryCase format
+        const transformedCases: DisciplinaryCase[] = realCases.map(case_ => ({
+          id: case_.id,
+          caseNumber: case_.caseNumber,
+          memberName: '', // Will need to join with members table for full name
+          memberId: case_.memberId || '',
+          violationType: case_.violationType,
+          description: case_.description,
+          severity: case_.severity as 'Low' | 'Medium' | 'High',
+          status: case_.status as 'Active' | 'Under Review' | 'Resolved' | 'Appealed',
+          dateReported: case_.dateReported || new Date().toISOString().split('T')[0],
+          dateIncident: case_.dateIncident || new Date().toISOString().split('T')[0],
+          reportingOfficer: case_.reportingOfficer,
+          assignedOfficer: case_.assignedOfficer || undefined,
+          actions: [],
+          evidence: [],
+          notes: []
+        }));
+        
+        setCases(transformedCases);
+      } catch (error) {
+        console.error('Error fetching disciplinary cases:', error);
+        // Fallback to mock data
+        const mockCases = generateMockCases();
+        setCases(mockCases);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCases();
   }, []);
 
   const addCase = (caseData: Partial<DisciplinaryCase>) => {

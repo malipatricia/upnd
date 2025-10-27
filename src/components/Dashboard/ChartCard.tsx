@@ -115,7 +115,7 @@ export function ChartCard({ title, data, type, onDataPointClick }: ChartCardProp
           </div>
         </div>
         <div className="relative">
-          <div className="flex items-end justify-between space-x-2 h-48 px-2">
+          <div className="flex items-end justify-between space-x-2 h-48 px-2 overflow-x-auto">
             {data.map((item, index) => {
               const height = (item.registrations / maxValue) * 100;
               const isHovered = hoveredItem === item.month;
@@ -123,7 +123,7 @@ export function ChartCard({ title, data, type, onDataPointClick }: ChartCardProp
               return (
                 <div
                   key={index}
-                  className="flex-1 flex flex-col items-center group relative"
+                  className="flex flex-col items-center group relative min-w-[60px] flex-shrink-0"
                   onMouseEnter={(e) => handleMouseEnter(item.month, e)}
                   onMouseLeave={handleMouseLeave}
                   onClick={() => onDataPointClick?.(item.month, item.registrations)}

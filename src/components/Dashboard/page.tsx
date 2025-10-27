@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMembers } from '../../hooks/useMembers';
 import { useDisciplinary } from '../../hooks/useDisciplinary';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +28,7 @@ import {
 import { useSession } from 'next-auth/react';
 
 export default function Dashboard() {
+  const router = useRouter();
   const { members, statistics, loading } = useMembers();
   const { cases } = useDisciplinary();
   const { user, hasPermission } = useAuth();
@@ -134,38 +136,74 @@ export default function Dashboard() {
       label: 'Approve Members',
       count: statistics?.pendingApplications,
       color: 'bg-gradient-to-r from-upnd-red to-upnd-red-dark',
-      onClick: () => console.log('Navigate to approvals')
+      onClick: () => {
+        // Scroll to members section or show members management
+        const membersSection = document.getElementById('members-section');
+        if (membersSection) {
+          membersSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     },
     {
       icon: Users,
       label: 'View All Members',
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
-      onClick: () => console.log('Navigate to members')
+      onClick: () => {
+        // Scroll to members section
+        const membersSection = document.getElementById('members-section');
+        if (membersSection) {
+          membersSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     },
     {
       icon: Calendar,
       label: 'Manage Events',
       color: 'bg-gradient-to-r from-upnd-yellow to-upnd-yellow-dark',
-      onClick: () => console.log('Navigate to events')
+      onClick: () => {
+        // Scroll to events section
+        const eventsSection = document.getElementById('events-section');
+        if (eventsSection) {
+          eventsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     },
     {
       icon: FileText,
       label: 'Generate Reports',
       color: 'bg-gradient-to-r from-green-500 to-green-600',
-      onClick: () => console.log('Navigate to reports')
+      onClick: () => {
+        // Scroll to reports section
+        const reportsSection = document.getElementById('reports-section');
+        if (reportsSection) {
+          reportsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     },
     {
       icon: AlertTriangle,
       label: 'Disciplinary Cases',
       count: activeCases,
       color: 'bg-gradient-to-r from-orange-500 to-orange-600',
-      onClick: () => console.log('Navigate to disciplinary')
+      onClick: () => {
+        // Scroll to disciplinary section
+        const disciplinarySection = document.getElementById('disciplinary-section');
+        if (disciplinarySection) {
+          disciplinarySection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     },
     {
       icon: Settings,
       label: 'System Settings',
       color: 'bg-gradient-to-r from-gray-500 to-gray-600',
-      onClick: () => console.log('Navigate to settings')
+      onClick: () => {
+        // Scroll to settings section
+        const settingsSection = document.getElementById('settings-section');
+        if (settingsSection) {
+          settingsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }
   ];
   const session_user = session?.user
@@ -202,7 +240,12 @@ export default function Dashboard() {
           color="bg-gradient-to-r from-upnd-red to-upnd-red-dark"
           trendValue={statistics?.totalMembers || 0}
           previousValue={130}
-          onClick={() => console.log('View all members')}
+          onClick={() => {
+            const membersSection = document.getElementById('members-section');
+            if (membersSection) {
+              membersSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
         />
         <StatsCard
           title="Pending Applications"
@@ -211,7 +254,12 @@ export default function Dashboard() {
           color="bg-gradient-to-r from-upnd-yellow to-upnd-yellow-dark"
           trendValue={statistics?.pendingApplications || 0}
           previousValue={35}
-          onClick={() => console.log('View pending')}
+          onClick={() => {
+            const membersSection = document.getElementById('members-section');
+            if (membersSection) {
+              membersSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
         />
         <StatsCard
           title="Approved Members"
@@ -220,7 +268,12 @@ export default function Dashboard() {
           color="bg-gradient-to-r from-green-500 to-green-600"
           trendValue={statistics?.approvedMembers || 0}
           previousValue={70}
-          onClick={() => console.log('View approved')}
+          onClick={() => {
+            const membersSection = document.getElementById('members-section');
+            if (membersSection) {
+              membersSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
         />
         <StatsCard
           title="Active Cases"
@@ -228,13 +281,18 @@ export default function Dashboard() {
           icon={AlertTriangle}
           color="bg-gradient-to-r from-orange-500 to-orange-600"
           trend={activeCases > 0 ? `${activeCases} pending` : 'All resolved'}
-          onClick={() => console.log('View cases')}
+          onClick={() => {
+            const disciplinarySection = document.getElementById('disciplinary-section');
+            if (disciplinarySection) {
+              disciplinarySection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
         />
       </div>
 
       <QuickActions actions={quickActions} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div id="reports-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
           title="Provincial Distribution"
           data={statistics?.provincialDistribution || {}}
@@ -249,7 +307,21 @@ export default function Dashboard() {
         />
       </div>
 
-      <ApprovalFunnel stages={funnelStages} totalApplications={statistics?.totalMembers || 0} />
+      <div id="disciplinary-section">
+        <ApprovalFunnel stages={funnelStages} totalApplications={statistics?.totalMembers || 0} />
+      </div>
+
+      {/* Events Section */}
+      <div id="events-section" className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-upnd-yellow">
+        <h3 className="text-lg font-semibold text-upnd-black mb-4">Upcoming Events</h3>
+        <p className="text-gray-600">Event management functionality will be available here.</p>
+      </div>
+
+      {/* Settings Section */}
+      <div id="settings-section" className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-gray-500">
+        <h3 className="text-lg font-semibold text-upnd-black mb-4">System Settings</h3>
+        <p className="text-gray-600">System configuration and settings will be available here.</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-upnd-red hover:shadow-xl transition-shadow">
@@ -299,7 +371,9 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <RecentActivity members={members} />
+      <div id="members-section">
+        <RecentActivity members={members} />
+      </div>
 
       {/* UPND Values Section */}
       <div className="bg-gradient-to-r from-upnd-red to-upnd-yellow rounded-xl p-8 text-white">
