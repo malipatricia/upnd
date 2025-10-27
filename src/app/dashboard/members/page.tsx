@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { useMembers } from '../../hooks/useMembers';
-import { MemberCard } from './MemberCard';
-import { MemberModal } from './MemberModal';
-import { Search, Filter, Users, Shield } from 'lucide-react';
-import { UPNDMember, MembershipStatus } from '../../types';
+"use client"
 
-export function MembersList() {
+import React, { useState } from 'react';
+import { Search, Filter, Users, Shield } from 'lucide-react';
+import { useMembers } from '@/hooks/useMembers';
+import { UPNDMember } from '@/types';
+import { MemberModal } from './MemberModal';
+import { MemberCard } from './MemberCard';
+
+export default function MembersList() {
   const { members, updateMemberStatus, loading } = useMembers();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');

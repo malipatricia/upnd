@@ -1,6 +1,6 @@
 import React from 'react';
-import { UPNDMember, MembershipStatus } from '../../types';
 import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
+import { MembershipStatus, UPNDMember } from '@/types';
 
 interface MemberCardProps {
   member: UPNDMember;

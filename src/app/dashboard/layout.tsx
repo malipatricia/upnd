@@ -1,5 +1,8 @@
 'use client';
 
+import AppSidebar from '@/components/Layout/appSidebar';
+import Header from '@/components/Layout/Header';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -15,5 +18,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (status === 'loading') return <div>Loading...</div>;
   if (!session) return null;
 
-  return <>{children}</>;
+  return <div className="bg-muted">
+    <SidebarProvider>
+      <AppSidebar />
+      <main className=" sm:p-6 w-full">
+        <div className="sm:grid sm:grid-cols-12 bg-background p-2 rounded-lg">
+          <div className="sm:col-span-2">
+          <SidebarTrigger /></div>
+          <div className="sm:col-span-10">
+          <Header/></div></div>
+        {children}
+      </main>
+    </SidebarProvider>
+    </div>
 }

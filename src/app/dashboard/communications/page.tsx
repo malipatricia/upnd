@@ -1,7 +1,8 @@
+"use client"
+
 import React, { useState, useEffect } from 'react';
 import { Mail, MessageSquare, Send, Users, Filter, History, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { NewCommunicationModal } from './NewCommunicationModal';
-import { CommunicationHistory } from './CommunicationHistory';
 
 interface Communication {
   id: string;
@@ -17,7 +18,7 @@ interface Communication {
   created_at: string;
 }
 
-export function Communications() {
+export default function Communications() {
   const [communications, setCommunications] = useState<Communication[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);

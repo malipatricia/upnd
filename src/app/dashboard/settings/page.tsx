@@ -1,5 +1,6 @@
+"use client"
+
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { 
   Settings as SettingsIcon, 
   Shield, 
@@ -12,8 +13,9 @@ import {
   Save,
   RefreshCw
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
-export function Settings() {
+export default function Settings() {
   const { user, hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({

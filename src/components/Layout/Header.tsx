@@ -3,14 +3,17 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, User, Shield } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
-export function Header() {
-  const { user, logout, isAuthenticated } = useAuth();
+export default function Header() {
+  const { data: session } = useSession(); 
+  const user = session?.user;
+  console.log(user)
 
-  if (!isAuthenticated || !user) return null;
+  if (!user) return null;
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header>
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
@@ -26,7 +29,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 lg:block hidden">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-upnd-red-light rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-white" />
@@ -34,14 +37,14 @@ export function Header() {
             <div className="text-right">
               <p className="text-sm font-medium text-upnd-black">{user.name}</p>
               <p className="text-xs text-gray-500">{user.role}</p>
-              {user.partyPosition && (
+              {/* {user.partyPosition && (
                 <p className="text-xs text-upnd-red font-medium">{user.partyPosition}</p>
-              )}
+              )} */}
             </div>
           </div>
 
           <button
-            onClick={logout}
+            onClick={()=>{}}
             className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-upnd-red hover:bg-gray-50 rounded-lg transition-colors"
             title="Logout"
           >

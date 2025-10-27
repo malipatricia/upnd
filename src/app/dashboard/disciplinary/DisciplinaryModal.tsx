@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DisciplinaryCase } from '../../types';
+import { DisciplinaryCase } from '../../../types';
 import { X, AlertTriangle, User, Calendar, FileText, Shield } from 'lucide-react';
 
 interface DisciplinaryModalProps {

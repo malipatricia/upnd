@@ -57,7 +57,7 @@ export function LoginForm() {
     } else {
       await getSession()
       toast.success('Redirecting...')
-      router.push("/dashboard");
+      router.push("/dashboard/profile");
     }
   };
 

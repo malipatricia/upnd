@@ -1,9 +1,6 @@
+"use client"
+
 import React, { useState } from 'react';
-import { useEvents } from '../../hooks/useEvents';
-import { useAuth } from '../../context/AuthContext';
-import { EventCard } from './EventCard';
-import { EventModal } from './EventModal';
-import { NewEventModal } from './NewEventModal';
 import { 
   Calendar, 
   Plus, 
@@ -14,9 +11,14 @@ import {
   Users,
   Clock
 } from 'lucide-react';
-import { UPNDEvent } from '../../types';
+import { useEvents } from '@/hooks/useEvents';
+import { useAuth } from '@/context/AuthContext';
+import { UPNDEvent } from '@/types';
+import { EventCard } from './EventCard';
+import { EventModal } from './EventModal';
+import { NewEventModal } from './NewEventModal';
 
-export function EventsManagement() {
+export default function EventsManagement() {
   const { events, addEvent, updateEvent, loading } = useEvents();
   const { user, hasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { UPNDMember } from '../../types';
 import { Download, Eye } from 'lucide-react';
+import { UPNDMember } from '@/types';
 
 interface MembershipCardProps {
   member: UPNDMember;

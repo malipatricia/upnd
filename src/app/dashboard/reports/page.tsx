@@ -1,7 +1,6 @@
+"use client"
+
 import React, { useState } from 'react';
-import { useMembers } from '../../hooks/useMembers';
-import { useDisciplinary } from '../../hooks/useDisciplinary';
-import { useAuth } from '../../context/AuthContext';
 import { ReportCard } from './ReportCard';
 import { ExportModal } from './ExportModal';
 import { 
@@ -16,8 +15,11 @@ import {
   AlertTriangle,
   PieChart
 } from 'lucide-react';
+import { useMembers } from '@/hooks/useMembers';
+import { useDisciplinary } from '@/hooks/useDisciplinary';
+import { useAuth } from '@/context/AuthContext';
 
-export function Reports() {
+export default function Reports() {
   const { members, statistics, loading } = useMembers();
   const { cases } = useDisciplinary();
   const { user, hasPermission } = useAuth();

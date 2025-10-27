@@ -106,8 +106,8 @@ export function RecentActivity({ members }: RecentActivityProps) {
               </div>
               <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                 <span>ID: {member.membershipId}</span>
-                <span>{member.jurisdiction.province} Province</span>
-                <span>{new Date(member.registrationDate).toLocaleDateString()}</span>
+                <span className='hidden lg:block'>{member.jurisdiction.province} Province</span>
+                <span className='hidden lg:block'>{new Date(member.registrationDate).toLocaleDateString()}</span>
               </div>
             </div>
             

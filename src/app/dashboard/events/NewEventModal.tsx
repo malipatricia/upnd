@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calendar, Shield } from 'lucide-react';
-import { zambianProvinces } from '../../data/zambia';
-import { UPNDEvent } from '../../types';
+import { UPNDEvent } from '@/types';
+import { zambianProvinces } from '@/data/zambia';
 
 interface NewEventModalProps {
   onClose: () => void;

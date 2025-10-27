@@ -32,6 +32,7 @@ const handler = NextAuth({
           id: user.id.toString(),
           name: user.fullName,
           email: user.email,
+          constituency: user.constituency,
           role: user.role || '',
         };
       },
@@ -42,11 +43,17 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = user.role;
+      if (user) {
+        token.role = user.role;
+        token.constituency = user.constituency;
+      }
       return token;
     },
     async session({ session, token }) {
-      session.user.role = token.role;
+      if (session.user) {
+        session.user.role = token.role;
+        session.user.constituency = token.constituency;
+      }
       return session;
     },
   },

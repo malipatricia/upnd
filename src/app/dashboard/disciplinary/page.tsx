@@ -1,9 +1,7 @@
+'use client'
+
 import React, { useState } from 'react';
-import { useDisciplinary } from '../../hooks/useDisciplinary';
-import { useAuth } from '../../context/AuthContext';
-import { DisciplinaryCard } from './DisciplinaryCard';
-import { DisciplinaryModal } from './DisciplinaryModal';
-import { NewCaseModal } from './NewCaseModal';
+
 import { 
   AlertTriangle, 
   Plus, 
@@ -14,9 +12,15 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { DisciplinaryCase } from '../../types';
+import { useDisciplinary } from '@/hooks/useDisciplinary';
+import { useAuth } from '@/context/AuthContext';
+import { DisciplinaryCase } from '@/types';
+import { DisciplinaryCard } from './DisciplinaryCard';
+import { DisciplinaryModal } from './DisciplinaryModal';
+import { NewCaseModal } from './NewCaseModal';
 
-export function DisciplinaryManagement() {
+
+export default function DisciplinaryManagement() {
   const { cases, addCase, updateCase, loading } = useDisciplinary();
   const { user, hasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');

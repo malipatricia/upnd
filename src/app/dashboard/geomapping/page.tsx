@@ -1,10 +1,12 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import { LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MemberMapData, MembershipStatus } from '../../types';
 import { MapPin, Users, Filter, Download, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
-import { zambia } from '../../data/zambia';
+import { MemberMapData, MembershipStatus } from '@/types';
+import { zambia } from '@/data/zambia';
 
 const ZAMBIA_CENTER: [number, number] = [-13.1339, 27.8493];
 const ZAMBIA_BOUNDS: [[number, number], [number, number]] = [
@@ -31,7 +33,7 @@ function MapBoundsController({ bounds }: { bounds: [[number, number], [number, n
   return null;
 }
 
-export function GeoMapping() {
+export default function GeoMapping() {
   const [members, setMembers] = useState<MemberMapData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProvince, setSelectedProvince] = useState<string>('all');
@@ -247,7 +249,7 @@ export function GeoMapping() {
             <div>
               <p className="text-sm text-gray-600">Pending</p>
               <p className="text-2xl font-bold text-yellow-600">
-                {filteredMembers.filter(m => m.status.includes('Pending')).length}
+                {filteredMembers.filter(m => m.status?.includes('Pending')).length}
               </p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -352,7 +354,7 @@ export function GeoMapping() {
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {provinceStats.map(stat => (
                 <button
-                  key={stat.province}
+                  key={`${stat.province}-${stat.members}`}
                   onClick={() => handleZoomToProvince(stat.province)}
                   className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
                 >
@@ -367,7 +369,7 @@ export function GeoMapping() {
           </div>
         </div>
 
-        <div className="lg:col-span-3">
+        {/* <div className="lg:col-span-3">
           <div className="bg-white rounded-lg shadow overflow-hidden" style={{ height: '700px' }}>
             <MapContainer
               center={ZAMBIA_CENTER}
@@ -384,8 +386,8 @@ export function GeoMapping() {
 
               {viewMode === 'markers' && filteredMembers.map(member => (
                 <CircleMarker
-                  key={member.id}
-                  center={[member.latitude, member.longitude]}
+                  key={`member-${member.id}`}
+                  center={[Number(member.latitude), Number(member.longitude)]}
                   radius={6}
                   fillColor={getMarkerColor(member.status)}
                   color="white"
@@ -413,7 +415,7 @@ export function GeoMapping() {
 
               {viewMode === 'clusters' && provinceStats.map(stat => (
                 <CircleMarker
-                  key={stat.province}
+                  key={`province-${stat.province}`}
                   center={stat.center}
                   radius={Math.sqrt(stat.count) * 5}
                   fillColor="#dc2626"
@@ -433,7 +435,7 @@ export function GeoMapping() {
               ))}
             </MapContainer>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="bg-white rounded-lg shadow p-4">

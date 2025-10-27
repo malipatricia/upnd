@@ -100,12 +100,27 @@ export const accounts = pgTable(
     scope: text("scope"),
     id_token: text("id_token"),
     session_state: text("session_state"),
-  },
-  (account) => ({
-    compoundKey: primaryKey(account.provider, account.providerAccountId),
-  })
+  }
 );
 
+// Roles table
+export const roles = pgTable("roles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").unique().notNull(),
+});
+
+// Permissions table
+export const permissions = pgTable("permissions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").unique().notNull(),
+  description: text("description"),
+});
+
+// Role–Permission many-to-many join table
+export const rolePermissions = pgTable("role_permissions", {
+  roleId: uuid("role_id").references(() => roles.id).notNull(),
+  permissionId: uuid("permission_id").references(() => permissions.id).notNull(),
+});
 
 // ===== MEMBERSHIP CARDS =====
 export const membershipCards = pgTable("membership_cards", {
@@ -328,5 +343,24 @@ export const districtRelations = relations(districts, ({ one }) => ({
   province: one(provinces, {
     fields: [districts.provinceId],
     references: [provinces.id],
+  }),
+}));
+
+export const roleRelations = relations(roles, ({ many }) => ({
+  permissions: many(rolePermissions),
+}));
+
+export const permissionRelations = relations(permissions, ({ many }) => ({
+  roles: many(rolePermissions),
+}));
+
+export const rolePermissionRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(roles, {
+    fields: [rolePermissions.roleId],
+    references: [roles.id],
+  }),
+  permission: one(permissions, {
+    fields: [rolePermissions.permissionId],
+    references: [permissions.id],
   }),
 }));

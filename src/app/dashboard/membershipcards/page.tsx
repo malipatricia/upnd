@@ -1,7 +1,6 @@
+'use client'
+
 import React, { useState } from 'react';
-import { useMembers } from '../../hooks/useMembers';
-import { useAuth } from '../../context/AuthContext';
-import { MembershipCard } from './MembershipCard';
 import { CardGenerationModal } from './CardGenerationModal';
 import {
   CreditCard,
@@ -14,9 +13,12 @@ import {
   Plus,
   CheckCircle
 } from 'lucide-react';
-import { UPNDMember } from '../../types';
+import { useMembers } from '@/hooks/useMembers';
+import { useAuth } from '@/context/AuthContext';
+import { UPNDMember } from '@/types';
+import { MembershipCard } from './MembershipCard';
 
-export function MembershipCards() {
+export default function MembershipCards() {
   const { members, loading } = useMembers();
   const { user, hasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle, Shield } from 'lucide-react';
-import { violationTypes } from '../../data/zambia';
-import { DisciplinaryCase } from '../../types';
+import { violationTypes } from '../../../data/zambia';
+import { DisciplinaryCase } from '../../../types';
 
 interface NewCaseModalProps {
   onClose: () => void;
