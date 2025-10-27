@@ -17,6 +17,7 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
     { value: 'Pending Branch Review', label: 'Pending Branch Review', color: 'text-yellow-600 bg-yellow-50' },
     { value: 'Pending Ward Review', label: 'Pending Ward Review', color: 'text-yellow-600 bg-yellow-50' },
     { value: 'Pending District Review', label: 'Pending District Review', color: 'text-yellow-600 bg-yellow-50' },
+    { value: 'Pending Provincial Review', label: 'Pending Provincial Review', color: 'text-yellow-600 bg-yellow-50' },
     { value: 'Approved', label: 'Approved', color: 'text-green-600 bg-green-50' },
     { value: 'Rejected', label: 'Rejected', color: 'text-red-600 bg-red-50' },
     { value: 'Suspended', label: 'Suspended', color: 'text-orange-600 bg-orange-50' },

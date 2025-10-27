@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UPNDMember, Statistics, MembershipStatus, Jurisdiction } from '../types';
-import { getDashboardStatistics, getAllMembers } from '../server/server.actions';
+import { getDashboardStatistics, getAllMembers, updateMemberStatus as updateMemberStatusAction, bulkUpdateMemberStatus } from '../server/server.actions';
 
 // Mock data for demonstration
 const generateMockMembers = (): UPNDMember[] => {
@@ -186,28 +186,107 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     return newMember;
   };
 
-  const updateMemberStatus = (memberId: string, status: MembershipStatus) => {
-    setMembers(prev => 
-      prev.map(member => 
-        member.id === memberId 
-          ? { ...member, status } 
-          : member
-      )
-    );
+  const updateMemberStatus = async (memberId: string, status: MembershipStatus) => {
+    try {
+      // Update the database first
+      const result = await updateMemberStatusAction(memberId, status);
+      
+      if (result.error) {
+        console.error('Failed to update member status:', result.error);
+        return;
+      }
+
+      // Update local state only if database update was successful
+      setMembers(prev => 
+        prev.map(member => 
+          member.id === memberId 
+            ? { ...member, status } 
+            : member
+        )
+      );
+    } catch (error) {
+      console.error('Error updating member status:', error);
+    }
+  };
+
+  const approveMember = async (memberId: string, currentStatus: MembershipStatus, userRole: string) => {
+    let nextStatus: MembershipStatus;
+    
+    // Determine next status based on current status and user role
+    if (userRole === 'admin') {
+      // Admin can approve at any level and skip to final approval
+      nextStatus = 'Approved';
+    } else {
+      // Regular approval workflow
+      switch (currentStatus) {
+        case 'Pending Section Review':
+          if (userRole === 'sectionadmin') {
+            nextStatus = 'Pending Branch Review';
+          } else {
+            throw new Error('Only section admins can approve at section level');
+          }
+          break;
+        case 'Pending Branch Review':
+          if (userRole === 'branchadmin') {
+            nextStatus = 'Pending Ward Review';
+          } else {
+            throw new Error('Only branch admins can approve at branch level');
+          }
+          break;
+        case 'Pending Ward Review':
+          if (userRole === 'wardadmin') {
+            nextStatus = 'Pending District Review';
+          } else {
+            throw new Error('Only ward admins can approve at ward level');
+          }
+          break;
+        case 'Pending District Review':
+          if (userRole === 'districtadmin') {
+            nextStatus = 'Pending Provincial Review';
+          } else {
+            throw new Error('Only district admins can approve at district level');
+          }
+          break;
+        case 'Pending Provincial Review':
+          if (userRole === 'provinceadmin') {
+            nextStatus = 'Approved';
+          } else {
+            throw new Error('Only province admins can approve at province level');
+          }
+          break;
+        default:
+          throw new Error('Invalid status for approval');
+      }
+    }
+
+    await updateMemberStatus(memberId, nextStatus);
   };
 
   const getMemberById = (id: string): UPNDMember | undefined => {
     return members.find(member => member.id === id);
   };
 
-  const bulkApprove = (memberIds: string[]) => {
-    setMembers(prev => 
-      prev.map(member => 
-        memberIds.includes(member.id) 
-          ? { ...member, status: 'Approved' as MembershipStatus } 
-          : member
-      )
-    );
+  const bulkApprove = async (memberIds: string[]) => {
+    try {
+      // Update the database first
+      const result = await bulkUpdateMemberStatus(memberIds, 'Approved');
+      
+      if (result.error) {
+        console.error('Failed to bulk update member status:', result.error);
+        return;
+      }
+
+      // Update local state only if database update was successful
+      setMembers(prev => 
+        prev.map(member => 
+          memberIds.includes(member.id) 
+            ? { ...member, status: 'Approved' as MembershipStatus } 
+            : member
+        )
+      );
+    } catch (error) {
+      console.error('Error bulk updating member status:', error);
+    }
   };
 
   return {
@@ -216,6 +295,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     loading,
     addMember,
     updateMemberStatus,
+    approveMember,
     getMemberById,
     bulkApprove
   };

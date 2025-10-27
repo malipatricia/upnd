@@ -52,14 +52,13 @@ export interface Jurisdiction {
 }
 
 export type UserRole = 
-  | 'National Admin'
-  | 'Provincial Admin'
-  | 'District Admin'
-  | 'Constituency Admin'
-  | 'Ward Admin'
-  | 'Branch Admin'
-  | 'Section Admin'
-  | 'Member';
+  | 'admin'
+  | 'member'
+  | 'sectionadmin'
+  | 'branchadmin'
+  | 'wardadmin'
+  | 'districtadmin'
+  | 'provinceadmin';
 
 export type OrganizationalLevel = 
   | 'National'
