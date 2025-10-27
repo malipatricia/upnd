@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Info, Download } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Info, Download, ChevronDown } from 'lucide-react';
+import { exportToCSV, exportToJSON, exportToHTML, exportToPDF } from '@/lib/utils';
 
 interface ChartCardProps {
   title: string;
@@ -11,6 +12,21 @@ interface ChartCardProps {
 export function ChartCard({ title, data, type, onDataPointClick }: ChartCardProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleMouseEnter = (key: string, event: React.MouseEvent) => {
     setHoveredItem(key);
@@ -20,6 +36,46 @@ export function ChartCard({ title, data, type, onDataPointClick }: ChartCardProp
 
   const handleMouseLeave = () => {
     setHoveredItem(null);
+  };
+
+  const handleDownload = (format: 'csv' | 'json' | 'html' | 'pdf') => {
+    const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-report`;
+    
+    if (type === 'bar' && typeof data === 'object' && !Array.isArray(data)) {
+      // Handle bar chart data (object with key-value pairs)
+      switch (format) {
+        case 'csv':
+          exportToCSV(data, filename);
+          break;
+        case 'json':
+          exportToJSON(data, filename);
+          break;
+        case 'html':
+          exportToHTML(data, title, filename);
+          break;
+        case 'pdf':
+          exportToPDF(data, title, filename);
+          break;
+      }
+    } else if (type === 'line' && Array.isArray(data)) {
+      // Handle line chart data (array of objects)
+      switch (format) {
+        case 'csv':
+          exportToCSV(data, filename);
+          break;
+        case 'json':
+          exportToJSON(data, filename);
+          break;
+        case 'html':
+          exportToHTML(data, title, filename);
+          break;
+        case 'pdf':
+          exportToPDF(data, title, filename);
+          break;
+      }
+    }
+    
+    setShowDownloadMenu(false);
   };
 
   if (type === 'bar' && typeof data === 'object' && !Array.isArray(data)) {
@@ -37,12 +93,46 @@ export function ChartCard({ title, data, type, onDataPointClick }: ChartCardProp
             >
               <Info className="w-4 h-4 text-gray-500" />
             </button>
-            <button
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Export data"
-            >
-              <Download className="w-4 h-4 text-gray-500" />
-            </button>
+            <div className="relative">
+              <button
+                className="p-1 hover:bg-gray-100 rounded transition-colors flex items-center space-x-1"
+                title="Export data"
+                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+              >
+                <Download className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-3 h-3 text-gray-500" />
+              </button>
+              {showDownloadMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="py-1">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('csv')}
+                    >
+                      Download as CSV
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('json')}
+                    >
+                      Download as JSON
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('html')}
+                    >
+                      Download as HTML
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('pdf')}
+                    >
+                      Download as PDF
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -106,12 +196,46 @@ export function ChartCard({ title, data, type, onDataPointClick }: ChartCardProp
             >
               <Info className="w-4 h-4 text-gray-500" />
             </button>
-            <button
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Export data"
-            >
-              <Download className="w-4 h-4 text-gray-500" />
-            </button>
+            <div className="relative">
+              <button
+                className="p-1 hover:bg-gray-100 rounded transition-colors flex items-center space-x-1"
+                title="Export data"
+                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+              >
+                <Download className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-3 h-3 text-gray-500" />
+              </button>
+              {showDownloadMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="py-1">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('csv')}
+                    >
+                      Download as CSV
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('json')}
+                    >
+                      Download as JSON
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('html')}
+                    >
+                      Download as HTML
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => handleDownload('pdf')}
+                    >
+                      Download as PDF
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="relative">
