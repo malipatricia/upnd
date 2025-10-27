@@ -29,11 +29,67 @@ import { useSession } from 'next-auth/react';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { members, statistics, loading } = useMembers();
-  const { cases } = useDisciplinary();
   const { user, hasPermission } = useAuth();
   const {data: session} = useSession()
   const [selectedDateRange, setSelectedDateRange] = useState('last30');
+  const [dateRange, setDateRange] = useState<{startDate?: Date, endDate?: Date}>({});
+
+  // Convert selected date range to actual Date objects
+  const getDateRangeFromSelection = (rangeValue: string) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (rangeValue) {
+      case 'today':
+        return {
+          startDate: today,
+          endDate: now
+        };
+      case 'last7':
+        return {
+          startDate: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000),
+          endDate: now
+        };
+      case 'last30':
+        return {
+          startDate: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
+          endDate: now
+        };
+      case 'last90':
+        return {
+          startDate: new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000),
+          endDate: now
+        };
+      case 'last180':
+        return {
+          startDate: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000),
+          endDate: now
+        };
+      case 'thisYear':
+        return {
+          startDate: new Date(now.getFullYear(), 0, 1),
+          endDate: now
+        };
+      case 'allTime':
+        return {
+          startDate: new Date(2020, 0, 1),
+          endDate: now
+        };
+      default:
+        return {
+          startDate: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
+          endDate: now
+        };
+    }
+  };
+
+  // Update date range when selection changes
+  React.useEffect(() => {
+    setDateRange(getDateRangeFromSelection(selectedDateRange));
+  }, [selectedDateRange]);
+
+  const { members, statistics, loading } = useMembers(dateRange.startDate, dateRange.endDate);
+  const { cases } = useDisciplinary(dateRange.startDate, dateRange.endDate);
   const [notifications, setNotifications] = useState([
     {
       id: '1',
@@ -220,7 +276,13 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center space-x-3">
           <DateRangeFilter
-            onRangeChange={(range) => setSelectedDateRange(range.value)}
+            onRangeChange={(range) => {
+              setSelectedDateRange(range.value);
+              setDateRange({
+                startDate: range.startDate,
+                endDate: range.endDate
+              });
+            }}
             selectedRange={selectedDateRange}
           />
           <NotificationPanel

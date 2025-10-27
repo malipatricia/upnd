@@ -33,7 +33,7 @@ const generateMockCases = (): DisciplinaryCase[] => {
   return cases;
 };
 
-export function useDisciplinary() {
+export function useDisciplinary(startDate?: Date, endDate?: Date) {
   const [cases, setCases] = useState<DisciplinaryCase[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +41,7 @@ export function useDisciplinary() {
     const fetchCases = async () => {
       try {
         setLoading(true);
-        const realCases = await getDisciplinaryCases();
+        const realCases = await getDisciplinaryCases(startDate, endDate);
         
         // Transform database cases to DisciplinaryCase format
         const transformedCases: DisciplinaryCase[] = realCases.map(case_ => ({
@@ -74,7 +74,7 @@ export function useDisciplinary() {
     };
 
     fetchCases();
-  }, []);
+  }, [startDate, endDate]);
 
   const addCase = (caseData: Partial<DisciplinaryCase>) => {
     const newCase: DisciplinaryCase = {
