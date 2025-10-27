@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UPNDMember, Statistics, MembershipStatus, Jurisdiction } from '../types';
-import { getDashboardStatistics, getAllMembers } from '../server/server.actions';
+import { getDashboardStatistics, getAllMembers, updateMemberStatus as updateMemberStatusAction, bulkUpdateMemberStatus } from '../server/server.actions';
 
 // Mock data for demonstration
 const generateMockMembers = (): UPNDMember[] => {
@@ -186,28 +186,54 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     return newMember;
   };
 
-  const updateMemberStatus = (memberId: string, status: MembershipStatus) => {
-    setMembers(prev => 
-      prev.map(member => 
-        member.id === memberId 
-          ? { ...member, status } 
-          : member
-      )
-    );
+  const updateMemberStatus = async (memberId: string, status: MembershipStatus) => {
+    try {
+      // Update the database first
+      const result = await updateMemberStatusAction(memberId, status);
+      
+      if (result.error) {
+        console.error('Failed to update member status:', result.error);
+        return;
+      }
+
+      // Update local state only if database update was successful
+      setMembers(prev => 
+        prev.map(member => 
+          member.id === memberId 
+            ? { ...member, status } 
+            : member
+        )
+      );
+    } catch (error) {
+      console.error('Error updating member status:', error);
+    }
   };
 
   const getMemberById = (id: string): UPNDMember | undefined => {
     return members.find(member => member.id === id);
   };
 
-  const bulkApprove = (memberIds: string[]) => {
-    setMembers(prev => 
-      prev.map(member => 
-        memberIds.includes(member.id) 
-          ? { ...member, status: 'Approved' as MembershipStatus } 
-          : member
-      )
-    );
+  const bulkApprove = async (memberIds: string[]) => {
+    try {
+      // Update the database first
+      const result = await bulkUpdateMemberStatus(memberIds, 'Approved');
+      
+      if (result.error) {
+        console.error('Failed to bulk update member status:', result.error);
+        return;
+      }
+
+      // Update local state only if database update was successful
+      setMembers(prev => 
+        prev.map(member => 
+          memberIds.includes(member.id) 
+            ? { ...member, status: 'Approved' as MembershipStatus } 
+            : member
+        )
+      );
+    } catch (error) {
+      console.error('Error bulk updating member status:', error);
+    }
   };
 
   return {
