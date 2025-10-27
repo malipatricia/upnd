@@ -41,7 +41,7 @@ const generateMockMembers = (): UPNDMember[] => {
   return members;
 };
 
-export function useMembers() {
+export function useMembers(startDate?: Date, endDate?: Date) {
   const [members, setMembers] = useState<UPNDMember[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,8 +53,8 @@ export function useMembers() {
         
         // Fetch real data from database
         const [statsData, membersData] = await Promise.all([
-          getDashboardStatistics(),
-          getAllMembers()
+          getDashboardStatistics(startDate, endDate),
+          getAllMembers(startDate, endDate)
         ]);
         
         // Transform database members to UPNDMember format
@@ -154,7 +154,7 @@ export function useMembers() {
     };
 
     fetchData();
-  }, []);
+  }, [startDate, endDate]);
 
   const addMember = (memberData: Partial<UPNDMember>) => {
     const newMember: UPNDMember = {

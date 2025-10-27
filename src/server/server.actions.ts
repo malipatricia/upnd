@@ -104,30 +104,40 @@ export async function registerMember(formData: unknown) {
 }
 
 // Dashboard statistics functions
-export async function getDashboardStatistics() {
+export async function getDashboardStatistics(startDate?: Date, endDate?: Date) {
   try {
+    // Build date filter conditions
+    const dateFilter = startDate && endDate 
+      ? sql`${members.registrationDate} >= ${startDate} AND ${members.registrationDate} <= ${endDate}`
+      : sql`1=1`;
+
     // Get total members count
     const [totalMembersResult] = await db
       .select({ count: count() })
-      .from(members);
+      .from(members)
+      .where(dateFilter);
 
     // Get pending applications count
     const [pendingApplicationsResult] = await db
       .select({ count: count() })
       .from(members)
-      .where(sql`${members.status} LIKE 'Pending%'`);
+      .where(sql`${members.status} LIKE 'Pending%' AND ${dateFilter}`);
 
     // Get approved members count
     const [approvedMembersResult] = await db
       .select({ count: count() })
       .from(members)
-      .where(eq(members.status, 'Approved'));
+      .where(sql`${members.status} = 'Approved' AND ${dateFilter}`);
 
     // Get active disciplinary cases count
+    const disciplinaryDateFilter = startDate && endDate 
+      ? sql`${disciplinaryCases.dateReported} >= ${startDate} AND ${disciplinaryCases.dateReported} <= ${endDate}`
+      : sql`1=1`;
+
     const [activeCasesResult] = await db
       .select({ count: count() })
       .from(disciplinaryCases)
-      .where(eq(disciplinaryCases.status, 'Active'));
+      .where(sql`${disciplinaryCases.status} = 'Active' AND ${disciplinaryDateFilter}`);
 
     // Get provincial distribution
     const provincialDistribution = await db
@@ -136,6 +146,7 @@ export async function getDashboardStatistics() {
         count: count()
       })
       .from(members)
+      .where(dateFilter)
       .groupBy(members.province);
 
     // Get status distribution
@@ -145,9 +156,10 @@ export async function getDashboardStatistics() {
         count: count()
       })
       .from(members)
+      .where(dateFilter)
       .groupBy(members.status);
 
-    // Get monthly trends (last 12 months)
+    // Get monthly trends (last 12 months or within date range)
     const monthlyTrends = await db
       .select({
         month: sql<string>`TO_CHAR(${members.registrationDate}, 'Mon')`,
@@ -155,7 +167,9 @@ export async function getDashboardStatistics() {
         count: count()
       })
       .from(members)
-      .where(sql`${members.registrationDate} >= NOW() - INTERVAL '12 months'`)
+      .where(startDate && endDate 
+        ? dateFilter 
+        : sql`${members.registrationDate} >= NOW() - INTERVAL '12 months'`)
       .groupBy(sql`TO_CHAR(${members.registrationDate}, 'Mon')`, sql`EXTRACT(YEAR FROM ${members.registrationDate})`)
       .orderBy(sql`EXTRACT(YEAR FROM ${members.registrationDate})`, sql`TO_CHAR(${members.registrationDate}, 'Mon')`);
 
@@ -198,11 +212,16 @@ export async function getDashboardStatistics() {
   }
 }
 
-export async function getAllMembers() {
+export async function getAllMembers(startDate?: Date, endDate?: Date) {
   try {
+    const dateFilter = startDate && endDate 
+      ? sql`${members.registrationDate} >= ${startDate} AND ${members.registrationDate} <= ${endDate}`
+      : sql`1=1`;
+
     const allMembers = await db
       .select()
       .from(members)
+      .where(dateFilter)
       .orderBy(members.createdAt);
 
     return allMembers;
@@ -212,11 +231,16 @@ export async function getAllMembers() {
   }
 }
 
-export async function getDisciplinaryCases() {
+export async function getDisciplinaryCases(startDate?: Date, endDate?: Date) {
   try {
+    const dateFilter = startDate && endDate 
+      ? sql`${disciplinaryCases.dateReported} >= ${startDate} AND ${disciplinaryCases.dateReported} <= ${endDate}`
+      : sql`1=1`;
+
     const cases = await db
       .select()
       .from(disciplinaryCases)
+      .where(dateFilter)
       .orderBy(disciplinaryCases.createdAt);
 
     return cases;
