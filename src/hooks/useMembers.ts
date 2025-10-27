@@ -65,14 +65,20 @@ export function useMembers() {
         provincialDistribution[province] = (provincialDistribution[province] || 0) + 1;
       });
       
-      // Monthly trends
+      // Monthly trends - All 12 months
       const monthlyTrends = [
         { month: 'Jan', registrations: 45 },
         { month: 'Feb', registrations: 52 },
         { month: 'Mar', registrations: 61 },
         { month: 'Apr', registrations: 58 },
         { month: 'May', registrations: 67 },
-        { month: 'Jun', registrations: 73 }
+        { month: 'Jun', registrations: 73 },
+        { month: 'Jul', registrations: 68 },
+        { month: 'Aug', registrations: 75 },
+        { month: 'Sep', registrations: 82 },
+        { month: 'Oct', registrations: 79 },
+        { month: 'Nov', registrations: 85 },
+        { month: 'Dec', registrations: 91 }
       ];
       
       // Status distribution
