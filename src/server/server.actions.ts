@@ -2,8 +2,8 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { members } from "@/drizzle/schema";
-import { AnyColumn, eq } from "drizzle-orm";
+import { members, disciplinaryCases } from "@/drizzle/schema";
+import { AnyColumn, eq, count, sql } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 import { addMemberSchema, loginSchema } from "@/schema/schema";
 import z from "zod";
@@ -101,4 +101,127 @@ export async function registerMember(formData: unknown) {
           console.error("DB insert failed", err);
           return { error: "Registration failed" };
         }
+}
+
+// Dashboard statistics functions
+export async function getDashboardStatistics() {
+  try {
+    // Get total members count
+    const [totalMembersResult] = await db
+      .select({ count: count() })
+      .from(members);
+
+    // Get pending applications count
+    const [pendingApplicationsResult] = await db
+      .select({ count: count() })
+      .from(members)
+      .where(sql`${members.status} LIKE 'Pending%'`);
+
+    // Get approved members count
+    const [approvedMembersResult] = await db
+      .select({ count: count() })
+      .from(members)
+      .where(eq(members.status, 'Approved'));
+
+    // Get active disciplinary cases count
+    const [activeCasesResult] = await db
+      .select({ count: count() })
+      .from(disciplinaryCases)
+      .where(eq(disciplinaryCases.status, 'Active'));
+
+    // Get provincial distribution
+    const provincialDistribution = await db
+      .select({
+        province: members.province,
+        count: count()
+      })
+      .from(members)
+      .groupBy(members.province);
+
+    // Get status distribution
+    const statusDistribution = await db
+      .select({
+        status: members.status,
+        count: count()
+      })
+      .from(members)
+      .groupBy(members.status);
+
+    // Get monthly trends (last 12 months)
+    const monthlyTrends = await db
+      .select({
+        month: sql<string>`TO_CHAR(${members.registrationDate}, 'Mon')`,
+        year: sql<number>`EXTRACT(YEAR FROM ${members.registrationDate})`,
+        count: count()
+      })
+      .from(members)
+      .where(sql`${members.registrationDate} >= NOW() - INTERVAL '12 months'`)
+      .groupBy(sql`TO_CHAR(${members.registrationDate}, 'Mon')`, sql`EXTRACT(YEAR FROM ${members.registrationDate})`)
+      .orderBy(sql`EXTRACT(YEAR FROM ${members.registrationDate})`, sql`TO_CHAR(${members.registrationDate}, 'Mon')`);
+
+    // Convert to the expected format
+    const provincialDistributionObj: Record<string, number> = {};
+    provincialDistribution.forEach(item => {
+      provincialDistributionObj[item.province] = item.count;
+    });
+
+    const statusDistributionObj: Record<string, number> = {};
+    statusDistribution.forEach(item => {
+      statusDistributionObj[item.status || 'Unknown'] = item.count;
+    });
+
+    const monthlyTrendsArray = monthlyTrends.map(item => ({
+      month: item.month,
+      registrations: item.count
+    }));
+
+    return {
+      totalMembers: totalMembersResult.count,
+      pendingApplications: pendingApplicationsResult.count,
+      approvedMembers: approvedMembersResult.count,
+      activeCases: activeCasesResult.count,
+      provincialDistribution: provincialDistributionObj,
+      monthlyTrends: monthlyTrendsArray,
+      statusDistribution: statusDistributionObj
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard statistics:', error);
+    return {
+      totalMembers: 0,
+      pendingApplications: 0,
+      approvedMembers: 0,
+      activeCases: 0,
+      provincialDistribution: {},
+      monthlyTrends: [],
+      statusDistribution: {}
+    };
+  }
+}
+
+export async function getAllMembers() {
+  try {
+    const allMembers = await db
+      .select()
+      .from(members)
+      .orderBy(members.createdAt);
+
+    return allMembers;
+  } catch (error) {
+    console.error('Error fetching members:', error);
+    return [];
+  }
+}
+
+export async function getDisciplinaryCases() {
+  try {
+    const cases = await db
+      .select()
+      .from(disciplinaryCases)
+      .orderBy(disciplinaryCases.createdAt);
+
+    return cases;
+  } catch (error) {
+    console.error('Error fetching disciplinary cases:', error);
+    return [];
+  }
 }
