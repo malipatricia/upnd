@@ -2,7 +2,7 @@ import React from 'react';
 import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
 import { MembershipStatus, UPNDMember } from '@/types';
 import { getButtonVisibility, getNextStatus, getStatusDisplayName } from '@/lib/approval';
-import { useAuth } from '@/context/AuthContext';
+import { useSession } from 'next-auth/react';
 
 interface MemberCardProps {
   member: UPNDMember;
@@ -11,7 +11,8 @@ interface MemberCardProps {
 }
 
 export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCardProps) {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -41,15 +42,16 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
   };
 
   // Get button visibility based on user role and member status
-  const buttonVisibility = user ? getButtonVisibility({ role: user.role }, member.status) : {
+  const buttonVisibility = user?.role ? getButtonVisibility({ role: user.role as any }, member.status) : {
     canApprove: false,
     canReject: false,
     canUpdateStatus: false
   };
 
+
   const handleApprove = () => {
-    if (user) {
-      const nextStatus = getNextStatus({ role: user.role }, member.status);
+    if (user?.role) {
+      const nextStatus = getNextStatus({ role: user.role as any }, member.status);
       onUpdateStatus(member.id, nextStatus);
     }
   };

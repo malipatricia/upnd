@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMembers } from '../../hooks/useMembers';
-import { useAuth } from '../../context/AuthContext';
+import { useSession } from 'next-auth/react';
 import { MemberCard } from './MemberCard';
 import { MemberModal } from './MemberModal';
 import { 
@@ -18,11 +18,19 @@ import { getApprovalLevel } from '../../lib/approval';
 
 export function MemberApproval() {
   const { members, updateMemberStatus, bulkApprove, loading } = useMembers();
-  const { user, hasPermission } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedMember, setSelectedMember] = useState<UPNDMember | null>(null);
+
+  // Simple permission check
+  const hasPermission = (permission: string) => {
+    if (!user?.role) return false;
+    const adminRoles = ['admin', 'provinceadmin', 'districtadmin', 'wardadmin', 'branchadmin', 'sectionadmin'];
+    return adminRoles.includes(user.role) && permission === 'approve_members';
+  };
 
   // Filter members based on user's jurisdiction and permissions
   const getFilteredMembers = () => {
