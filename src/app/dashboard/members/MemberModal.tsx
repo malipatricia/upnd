@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { UPNDMember, MembershipStatus } from '../../types';
 import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Shield } from 'lucide-react';
+import { getButtonVisibility } from '@/lib/approval';
+import { useSession } from 'next-auth/react';
 
 interface MemberModalProps {
   member: UPNDMember;
@@ -11,6 +13,15 @@ interface MemberModalProps {
 export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<MembershipStatus>(member.status);
   const [notes, setNotes] = useState('');
+  const { data: session } = useSession();
+  const user = session?.user;
+  
+  // Get button visibility based on user role and member status
+  const userRole = user?.role || 'member';
+  const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
+  
+  // Check if user can see Approve/Reject buttons (and is not admin)
+  const canSeeApproveReject = (buttonVisibility.canApprove || buttonVisibility.canReject) && userRole !== 'admin';
 
   const statusOptions: { value: MembershipStatus; label: string; color: string }[] = [
     { value: 'Pending Section Review', label: 'Pending Section Review', color: 'text-yellow-600 bg-yellow-50' },
@@ -149,54 +160,56 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
             </div>
           )}
 
-          {/* Status Management */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h4 className="font-semibold text-upnd-black mb-4 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2 text-upnd-red" />
-              Membership Status Management
-            </h4>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Status
-                </label>
-                <div className={`px-3 py-2 rounded-lg text-sm font-medium ${statusOptions.find(s => s.value === member.status)?.color}`}>
-                  {member.status}
+          {/* Status Management - Only show if user can see Approve/Reject buttons */}
+          {canSeeApproveReject && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold text-upnd-black mb-4 flex items-center">
+                <AlertCircle className="w-5 h-5 mr-2 text-upnd-red" />
+                Membership Status Management
+              </h4>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Status
+                  </label>
+                  <div className={`px-3 py-2 rounded-lg text-sm font-medium ${statusOptions.find(s => s.value === member.status)?.color}`}>
+                    {member.status}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Update Status
+                  </label>
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value as MembershipStatus)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-              
-              <div>
+
+              <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Update Status
+                  Status Update Notes (Optional)
                 </label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as MembershipStatus)}
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-                >
-                  {statusOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Add notes about this status change..."
+                />
               </div>
             </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status Update Notes (Optional)
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-                placeholder="Add notes about this status change..."
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -209,7 +222,7 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
           </button>
           
           <div className="flex space-x-3">
-            {selectedStatus !== member.status && (
+            {canSeeApproveReject && selectedStatus !== member.status && (
               <button
                 onClick={handleStatusUpdate}
                 className="px-6 py-2 bg-gradient-to-r from-upnd-red to-upnd-yellow text-white rounded-lg hover:shadow-lg transition-all"
