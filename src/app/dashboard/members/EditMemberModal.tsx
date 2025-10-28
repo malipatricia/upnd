@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { UPNDMember, MembershipStatus } from '../../types';
 import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Edit2, Save } from 'lucide-react';
-import { zambianProvinces, provincialDistricts } from '../../data/zambia';
+import { zambianProvinces, provincialDistricts } from '../../../data/zambia';
 import { useSession } from 'next-auth/react';
 
 interface EditMemberModalProps {
