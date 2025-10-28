@@ -74,16 +74,6 @@ const mockUsers: Record<string, UPNDUser> = {
     level: 'Section',
     isActive: true,
     partyPosition: 'Section Chairperson'
-  },
-  'member@upnd.zm': {
-    id: '7',
-    email: 'member@upnd.zm',
-    role: 'member',
-    name: 'John Doe',
-    jurisdiction: 'Kabwata Section A',
-    level: 'Section',
-    isActive: true,
-    partyPosition: 'Member'
   }
 };
 
@@ -91,27 +81,33 @@ const permissions: Record<UserRole, string[]> = {
   'admin': [
     'view_all', 'approve_all', 'manage_users', 'generate_reports',
     'export_data', 'approve_members', 'system_settings', 'manage_disciplinary',
-    'manage_events'
+    'manage_events', 'approve_section', 'approve_branch', 'approve_ward', 
+    'approve_district', 'approve_province'
   ],
   'provinceadmin': [
     'view_province', 'approve_members', 'manage_province_users',
     'generate_reports', 'export_data', 'manage_districts', 'manage_branches',
-    'manage_officials', 'manage_events', 'view_performance', 'manage_disciplinary'
+    'manage_officials', 'manage_events', 'view_performance', 'manage_disciplinary',
+    'approve_province'
   ],
   'districtadmin': [
     'view_district', 'approve_members', 'manage_district_users',
-    'generate_reports', 'manage_constituencies', 'manage_events'
+    'generate_reports', 'manage_constituencies', 'manage_events',
+    'approve_district'
   ],
   'wardadmin': [
     'view_ward', 'approve_members', 'manage_ward_users',
-    'generate_reports', 'manage_branches', 'manage_events'
+    'generate_reports', 'manage_branches', 'manage_events',
+    'approve_ward'
   ],
   'branchadmin': [
     'view_branch', 'approve_members', 'manage_branch_users',
-    'generate_reports', 'manage_sections', 'manage_events'
+    'generate_reports', 'manage_sections', 'manage_events',
+    'approve_branch'
   ],
   'sectionadmin': [
-    'view_section', 'review_applications', 'generate_reports'
+    'view_section', 'review_applications', 'generate_reports',
+    'approve_section'
   ],
   'member': [
     'view_profile', 'update_profile'

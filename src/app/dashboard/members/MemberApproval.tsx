@@ -17,9 +17,8 @@ import { UPNDMember, MembershipStatus } from '../../types';
 import { getApprovalLevel } from '../../lib/approval';
 
 export function MemberApproval() {
-  const { members, updateMemberStatus, bulkApprove, loading } = useMembers();
-  const { data: session } = useSession();
-  const user = session?.user;
+  const { members, updateMemberStatus, approveMember, bulkApprove, loading } = useMembers();
+  const { user, hasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -103,6 +102,38 @@ export function MemberApproval() {
     }
   };
 
+
+  const canApproveMember = (member: UPNDMember): boolean => {
+    if (!user) return false;
+    
+    // Admin can approve any member at any level
+    if (user.role === 'admin') return true;
+    
+    // Check if user has permission to approve at the current level
+    switch (member.status) {
+      case 'Pending Section Review':
+        return user.role === 'sectionadmin' && hasPermission('approve_section');
+      case 'Pending Branch Review':
+        return user.role === 'branchadmin' && hasPermission('approve_branch');
+      case 'Pending Ward Review':
+        return user.role === 'wardadmin' && hasPermission('approve_ward');
+      case 'Pending District Review':
+        return user.role === 'districtadmin' && hasPermission('approve_district');
+      case 'Pending Provincial Review':
+        return user.role === 'provinceadmin' && hasPermission('approve_province');
+      default:
+        return false;
+    }
+  };
+
+  const handleApproveMember = async (member: UPNDMember) => {
+    try {
+      await approveMember(member.id, member.status, user?.role || '');
+    } catch (error) {
+      console.error('Error approving member:', error);
+      // You could add a toast notification here
+    }
+  };
 
   if (loading) {
     return (
@@ -304,6 +335,8 @@ export function MemberApproval() {
                 member={member}
                 onViewDetails={() => setSelectedMember(member)}
                 onUpdateStatus={updateMemberStatus}
+                onApproveMember={handleApproveMember}
+                canApprove={canApproveMember(member)}
               />
               <div className="mt-2 text-center">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-upnd-yellow/10 text-upnd-yellow border border-upnd-yellow/20">
