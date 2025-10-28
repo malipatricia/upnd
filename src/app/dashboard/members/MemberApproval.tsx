@@ -14,6 +14,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { UPNDMember, MembershipStatus } from '../../types';
+import { getApprovalLevel } from '../../lib/approval';
 
 export function MemberApproval() {
   const { members, updateMemberStatus, bulkApprove, loading } = useMembers();
@@ -57,7 +58,7 @@ export function MemberApproval() {
     // Filter by status
     if (statusFilter === 'pending') {
       filteredMembers = filteredMembers.filter(member => 
-        member.status.includes('Pending')
+        member.status.includes('pending')
       );
     } else if (statusFilter !== 'all') {
       filteredMembers = filteredMembers.filter(member => 
@@ -69,7 +70,7 @@ export function MemberApproval() {
   };
 
   const filteredMembers = getFilteredMembers();
-  const pendingMembers = filteredMembers.filter(m => m.status.includes('Pending'));
+  const pendingMembers = filteredMembers.filter(m => m.status.includes('pending'));
 
   const handleBulkApprove = () => {
     if (selectedMembers.length > 0) {
@@ -94,16 +95,6 @@ export function MemberApproval() {
     }
   };
 
-  const getApprovalLevel = (status: MembershipStatus): string => {
-    switch (status) {
-      case 'Pending Section Review': return 'Section Level';
-      case 'Pending Branch Review': return 'Branch Level';
-      case 'Pending Ward Review': return 'Ward Level';
-      case 'Pending District Review': return 'District Level';
-      case 'Pending Provincial Review': return 'Provincial Level';
-      default: return 'Final Review';
-    }
-  };
 
   if (loading) {
     return (
@@ -290,7 +281,7 @@ export function MemberApproval() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredMembers.map((member) => (
           <div key={member.id} className="relative">
-            {hasPermission('approve_members') && member.status.includes('Pending') && (
+            {hasPermission('approve_members') && member.status.includes('pending') && (
               <div className="absolute top-4 left-4 z-10">
                 <input
                   type="checkbox"

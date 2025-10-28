@@ -1,6 +1,8 @@
 import React from 'react';
 import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
 import { MembershipStatus, UPNDMember } from '@/types';
+import { getButtonVisibility, getNextStatus, getStatusDisplayName } from '@/lib/approval';
+import { useAuth } from '@/context/AuthContext';
 
 interface MemberCardProps {
   member: UPNDMember;
@@ -9,6 +11,8 @@ interface MemberCardProps {
 }
 
 export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCardProps) {
+  const { user } = useAuth();
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Approved':
@@ -36,6 +40,24 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
     }
   };
 
+  // Get button visibility based on user role and member status
+  const buttonVisibility = user ? getButtonVisibility({ role: user.role }, member.status) : {
+    canApprove: false,
+    canReject: false,
+    canUpdateStatus: false
+  };
+
+  const handleApprove = () => {
+    if (user) {
+      const nextStatus = getNextStatus({ role: user.role }, member.status);
+      onUpdateStatus(member.id, nextStatus);
+    }
+  };
+
+  const handleReject = () => {
+    onUpdateStatus(member.id, 'Rejected');
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border-l-4 border-upnd-red">
       <div className="flex items-start justify-between mb-4">
@@ -50,7 +72,7 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
         </div>
         <div className={`flex items-center space-x-1 px-3 py-1 text-xs font-medium border rounded-full ${getStatusColor(member.status)}`}>
           {getStatusIcon(member.status)}
-          <span>{member.status}</span>
+          <span>{getStatusDisplayName(member.status)}</span>
         </div>
       </div>
 
@@ -131,20 +153,32 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
           <span>View Details</span>
         </button>
 
-        {member.status !== 'Approved' && member.status !== 'Rejected' && (
+        {(buttonVisibility.canApprove || buttonVisibility.canReject || buttonVisibility.canUpdateStatus) && (
           <div className="flex space-x-2">
-            <button
-              onClick={() => onUpdateStatus(member.id, 'Approved')}
-              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => onUpdateStatus(member.id, 'Rejected')}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-            >
-              Reject
-            </button>
+            {buttonVisibility.canApprove && (
+              <button
+                onClick={handleApprove}
+                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                Approve
+              </button>
+            )}
+            {buttonVisibility.canReject && (
+              <button
+                onClick={handleReject}
+                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Reject
+              </button>
+            )}
+            {buttonVisibility.canUpdateStatus && (
+              <button
+                onClick={() => onUpdateStatus(member.id, member.status)}
+                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Update Status
+              </button>
+            )}
           </div>
         )}
       </div>

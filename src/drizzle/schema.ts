@@ -58,7 +58,7 @@ export const members = pgTable("members", {
   membershipLevel: text("membership_level").default("General"),
   partyRole: text("party_role"),
   partyCommitment: text("party_commitment"),
-  status: text("status").default("Pending Section Review"),
+  status: text("status").default("pending section review"),
 
   profileImage: text("profile_image"),
   registrationDate: timestamp("registration_date", ).defaultNow(),

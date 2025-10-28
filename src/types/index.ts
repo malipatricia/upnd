@@ -32,11 +32,11 @@ export interface Endorsement {
 }
 
 export type MembershipStatus = 
-  | 'Pending Section Review'
-  | 'Pending Branch Review' 
-  | 'Pending Ward Review'
-  | 'Pending District Review'
-  | 'Pending Provincial Review'
+  | 'pending section review'
+  | 'pending branch review' 
+  | 'pending ward review'
+  | 'pending district review'
+  | 'pending provincial review'
   | 'Approved'
   | 'Rejected'
   | 'Suspended'
@@ -52,14 +52,13 @@ export interface Jurisdiction {
 }
 
 export type UserRole = 
-  | 'National Admin'
-  | 'Provincial Admin'
-  | 'District Admin'
-  | 'Constituency Admin'
-  | 'Ward Admin'
-  | 'Branch Admin'
-  | 'Section Admin'
-  | 'Member';
+  | 'admin'
+  | 'provinceadmin'
+  | 'districtadmin'
+  | 'wardadmin'
+  | 'branchadmin'
+  | 'sectionadmin'
+  | 'member';
 
 export type OrganizationalLevel = 
   | 'National'
