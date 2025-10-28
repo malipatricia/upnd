@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { db } from '@/drizzle/db';
 import { members } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
@@ -10,10 +9,18 @@ export async function PUT(
   { params }: { params: { memberId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
+    
+    // Debug logging
+    console.log('Session data:', JSON.stringify(session, null, 2));
     
     // Check if user is authenticated and is admin
     if (!session?.user || session.user.role !== 'admin') {
+      console.log('Authorization failed:', { 
+        hasSession: !!session, 
+        hasUser: !!session?.user, 
+        userRole: session?.user?.role 
+      });
       return NextResponse.json(
         { error: 'Unauthorized. Admin access required.' },
         { status: 401 }
@@ -131,7 +138,7 @@ export async function GET(
   { params }: { params: { memberId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     // Check if user is authenticated
     if (!session?.user) {
