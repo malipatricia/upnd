@@ -20,8 +20,9 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
   const userRole = user?.role || 'member';
   const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
   
-  // Check if user can see Approve/Reject buttons (and is not admin)
-  const canSeeApproveReject = (buttonVisibility.canApprove || buttonVisibility.canReject) && userRole !== 'admin';
+  // Check if user can see status management section
+  // Admin can always see status management, others based on button visibility
+  const canSeeStatusManagement = userRole === 'admin' || (buttonVisibility.canApprove || buttonVisibility.canReject || buttonVisibility.canUpdateStatus);
 
   const statusOptions: { value: MembershipStatus; label: string; color: string }[] = [
     { value: 'Pending Section Review', label: 'Pending Section Review', color: 'text-yellow-600 bg-yellow-50' },
@@ -159,8 +160,8 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
             </div>
           )}
 
-          {/* Status Management - Only show if user can see Approve/Reject buttons */}
-          {canSeeApproveReject && (
+          {/* Status Management - Show for admin or users with appropriate permissions */}
+          {canSeeStatusManagement && (
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-upnd-black mb-4 flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2 text-upnd-red" />
@@ -221,7 +222,7 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
           </button>
           
           <div className="flex space-x-3">
-            {canSeeApproveReject && selectedStatus !== member.status && (
+            {canSeeStatusManagement && selectedStatus !== member.status && (
               <button
                 onClick={handleStatusUpdate}
                 className="px-6 py-2 bg-gradient-to-r from-upnd-red to-upnd-yellow text-white rounded-lg hover:shadow-lg transition-all"
