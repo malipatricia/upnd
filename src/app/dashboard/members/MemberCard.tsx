@@ -42,27 +42,14 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
   };
 
   // Get button visibility based on user role and member status
-  const buttonVisibility = user?.role ? getButtonVisibility({ role: user.role as any }, member.status) : {
-    canApprove: false,
-    canReject: false,
-    canUpdateStatus: false
-  };
-
-  // Debug logging to see what's happening
-  console.log('MemberCard Debug:', {
-    user: user ? { role: user.role, name: user.name, email: user.email } : 'No user',
-    memberStatus: member.status,
-    buttonVisibility,
-    userRoleType: typeof user?.role,
-    userRoleValue: user?.role
-  });
+  // For testing purposes, let's use a mock role if the user role is not available
+  const userRole = user?.role || 'member';
+  const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
 
 
   const handleApprove = () => {
-    if (user?.role) {
-      const nextStatus = getNextStatus({ role: user.role as any }, member.status);
-      onUpdateStatus(member.id, nextStatus);
-    }
+    const nextStatus = getNextStatus({ role: userRole as any }, member.status);
+    onUpdateStatus(member.id, nextStatus);
   };
 
   const handleReject = () => {

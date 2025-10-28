@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.fullName,
-          role: user.role ?? undefined,
+          role: user.role || 'member', // Default to 'member' if role is null/undefined
         };
       },
     }),
