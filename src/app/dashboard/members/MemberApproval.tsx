@@ -66,7 +66,7 @@ export function MemberApproval() {
     // Filter by status
     if (statusFilter === 'pending') {
       filteredMembers = filteredMembers.filter(member => 
-        member.status.includes('pending')
+        member.status.includes('Pending')
       );
     } else if (statusFilter !== 'all') {
       filteredMembers = filteredMembers.filter(member => 

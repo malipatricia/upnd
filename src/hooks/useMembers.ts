@@ -6,7 +6,7 @@ import { getDashboardStatistics, getAllMembers, updateMemberStatus as updateMemb
 const generateMockMembers = (): UPNDMember[] => {
   const members: UPNDMember[] = [];
   const provinces = ['Lusaka', 'Copperbelt', 'Central', 'Eastern', 'Southern', 'Western', 'Northern', 'Luapula', 'North-Western', 'Muchinga'];
-  const statuses: MembershipStatus[] = ['Approved', 'pending section review', 'pending branch review', 'pending ward review', 'pending district review', 'Rejected'];
+  const statuses: MembershipStatus[] = ['Approved', 'Pending Section Review', 'Pending Branch Review', 'Pending Ward Review', 'Pending District Review', 'Rejected'];
   
   for (let i = 1; i <= 150; i++) {
     const registrationDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
@@ -123,11 +123,11 @@ export function useMembers(startDate?: Date, endDate?: Date) {
         ];
         
         const statusDistribution: Record<MembershipStatus, number> = {
-          'pending section review': 0,
-          'pending branch review': 0,
-          'pending ward review': 0,
-          'pending district review': 0,
-          'pending provincial review': 0,
+          'Pending Section Review': 0,
+          'Pending Branch Review': 0,
+          'Pending Ward Review': 0,
+          'Pending District Review': 0,
+          'Pending Provincial Review': 0,
           'Approved': 0,
           'Rejected': 0,
           'Suspended': 0,

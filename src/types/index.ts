@@ -32,11 +32,11 @@ export interface Endorsement {
 }
 
 export type MembershipStatus = 
-  | 'pending section review'
-  | 'pending branch review' 
-  | 'pending ward review'
-  | 'pending district review'
-  | 'pending provincial review'
+  | 'Pending Section Review'
+  | 'Pending Branch Review' 
+  | 'Pending Ward Review'
+  | 'Pending District Review'
+  | 'Pending Provincial Review'
   | 'Approved'
   | 'Rejected'
   | 'Suspended'

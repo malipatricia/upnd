@@ -1,10 +1,10 @@
--- Update existing member statuses to use lowercase format
+-- Update existing member statuses to use capitalized format
 UPDATE members 
 SET status = CASE 
-  WHEN status = 'Pending Section Review' THEN 'pending section review'
-  WHEN status = 'Pending Branch Review' THEN 'pending branch review'
-  WHEN status = 'Pending Ward Review' THEN 'pending ward review'
-  WHEN status = 'Pending District Review' THEN 'pending district review'
-  WHEN status = 'Pending Provincial Review' THEN 'pending provincial review'
+  WHEN status = 'pending section review' THEN 'Pending Section Review'
+  WHEN status = 'pending branch review' THEN 'Pending Branch Review'
+  WHEN status = 'pending ward review' THEN 'Pending Ward Review'
+  WHEN status = 'pending district review' THEN 'Pending District Review'
+  WHEN status = 'pending provincial review' THEN 'Pending Provincial Review'
   ELSE status
 END;

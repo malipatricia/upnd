@@ -11,13 +11,6 @@ export interface User {
 }
 
 /**
- * Normalizes member status to lowercase format for consistent comparison
- */
-function normalizeStatus(status: string): string {
-  return status.toLowerCase().replace(/\s+/g, ' ');
-}
-
-/**
  * Determines which buttons should be visible based on user role and member status
  */
 export function getButtonVisibility(user: User, memberStatus: MembershipStatus): ButtonVisibility {
@@ -27,9 +20,6 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
     canUpdateStatus: false
   };
 
-  // Normalize the member status to handle case sensitivity
-  const normalizedStatus = normalizeStatus(memberStatus);
-
   // i) Member cannot view approve/reject/update buttons
   if (user.role === "member") {
     return visibility;
@@ -38,7 +28,7 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
   // vii) Admin can always view buttons
   if (user.role === "admin") {
     // If already approved → only show "update status"
-    if (normalizedStatus === "approved") {
+    if (memberStatus === "Approved") {
       return {
         canApprove: false,
         canReject: false,
@@ -54,7 +44,7 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
   }
 
   // ii) Section Admin
-  if (user.role === "sectionadmin" && normalizedStatus === "pending section review") {
+  if (user.role === "sectionadmin" && memberStatus === "Pending Section Review") {
     return {
       canApprove: true,
       canReject: true,
@@ -63,7 +53,7 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
   }
 
   // iii) Branch Admin
-  if (user.role === "branchadmin" && normalizedStatus === "pending branch review") {
+  if (user.role === "branchadmin" && memberStatus === "Pending Branch Review") {
     return {
       canApprove: true,
       canReject: true,
@@ -72,7 +62,7 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
   }
 
   // iv) Ward Admin
-  if (user.role === "wardadmin" && normalizedStatus === "pending ward review") {
+  if (user.role === "wardadmin" && memberStatus === "Pending Ward Review") {
     return {
       canApprove: true,
       canReject: true,
@@ -81,7 +71,7 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
   }
 
   // v) District Admin
-  if (user.role === "districtadmin" && normalizedStatus === "pending district review") {
+  if (user.role === "districtadmin" && memberStatus === "Pending District Review") {
     return {
       canApprove: true,
       canReject: true,
@@ -90,7 +80,7 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
   }
 
   // vi) Province Admin
-  if (user.role === "provinceadmin" && normalizedStatus === "pending provincial review") {
+  if (user.role === "provinceadmin" && memberStatus === "Pending Provincial Review") {
     return {
       canApprove: true,
       canReject: true,
@@ -107,10 +97,10 @@ export function getButtonVisibility(user: User, memberStatus: MembershipStatus):
  */
 export function getNextStatus(user: User, currentStatus: MembershipStatus): MembershipStatus {
   if (user.role === "admin") return "Approved";
-  if (user.role === "sectionadmin") return "pending branch review";
-  if (user.role === "branchadmin") return "pending ward review";
-  if (user.role === "wardadmin") return "pending district review";
-  if (user.role === "districtadmin") return "pending provincial review";
+  if (user.role === "sectionadmin") return "Pending Branch Review";
+  if (user.role === "branchadmin") return "Pending Ward Review";
+  if (user.role === "wardadmin") return "Pending District Review";
+  if (user.role === "districtadmin") return "Pending Provincial Review";
   if (user.role === "provinceadmin") return "Approved";
   return currentStatus;
 }
@@ -120,15 +110,15 @@ export function getNextStatus(user: User, currentStatus: MembershipStatus): Memb
  */
 export function getStatusDisplayName(status: MembershipStatus): string {
   switch (status) {
-    case 'pending section review':
+    case 'Pending Section Review':
       return 'Pending Section Review';
-    case 'pending branch review':
+    case 'Pending Branch Review':
       return 'Pending Branch Review';
-    case 'pending ward review':
+    case 'Pending Ward Review':
       return 'Pending Ward Review';
-    case 'pending district review':
+    case 'Pending District Review':
       return 'Pending District Review';
-    case 'pending provincial review':
+    case 'Pending Provincial Review':
       return 'Pending Provincial Review';
     default:
       return status;
@@ -140,15 +130,15 @@ export function getStatusDisplayName(status: MembershipStatus): string {
  */
 export function getApprovalLevel(status: MembershipStatus): string {
   switch (status) {
-    case 'pending section review':
+    case 'Pending Section Review':
       return 'Section Level';
-    case 'pending branch review':
+    case 'Pending Branch Review':
       return 'Branch Level';
-    case 'pending ward review':
+    case 'Pending Ward Review':
       return 'Ward Level';
-    case 'pending district review':
+    case 'Pending District Review':
       return 'District Level';
-    case 'pending provincial review':
+    case 'Pending Provincial Review':
       return 'Provincial Level';
     case 'Approved':
       return 'Approved';

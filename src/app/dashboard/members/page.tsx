@@ -25,7 +25,7 @@ export default function MembersList() {
   const statusCounts = {
     all: members.length,
     approved: members.filter(m => m.status === 'Approved').length,
-    pending: members.filter(m => m.status.includes('pending')).length,
+    pending: members.filter(m => m.status.includes('Pending')).length,
     rejected: members.filter(m => m.status === 'Rejected').length
   };
 
@@ -85,7 +85,7 @@ export default function MembersList() {
             >
               <option value="all">All Members ({statusCounts.all})</option>
               <option value="Approved">Approved ({statusCounts.approved})</option>
-              <option value="pending section review">Pending Review ({statusCounts.pending})</option>
+              <option value="Pending Section Review">Pending Review ({statusCounts.pending})</option>
               <option value="Rejected">Rejected ({statusCounts.rejected})</option>
             </select>
           </div>
