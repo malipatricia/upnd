@@ -156,26 +156,26 @@ export default function Dashboard() {
     },
     {
       name: 'Section Review',
-      count: statistics?.statusDistribution['Pending Section Review'] || 0,
-      percentage: ((statistics?.statusDistribution['Pending Section Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['pending section review'] || 0,
+      percentage: ((statistics?.statusDistribution['pending section review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-upnd-yellow'
     },
     {
       name: 'Branch Review',
-      count: statistics?.statusDistribution['Pending Branch Review'] || 0,
-      percentage: ((statistics?.statusDistribution['Pending Branch Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['pending branch review'] || 0,
+      percentage: ((statistics?.statusDistribution['pending branch review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-orange-500'
     },
     {
       name: 'Ward Review',
-      count: statistics?.statusDistribution['Pending Ward Review'] || 0,
-      percentage: ((statistics?.statusDistribution['Pending Ward Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['pending ward review'] || 0,
+      percentage: ((statistics?.statusDistribution['pending ward review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-upnd-yellow'
     },
     {
       name: 'District Review',
-      count: statistics?.statusDistribution['Pending District Review'] || 0,
-      percentage: ((statistics?.statusDistribution['Pending District Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['pending district review'] || 0,
+      percentage: ((statistics?.statusDistribution['pending district review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-orange-500'
     },
     {
