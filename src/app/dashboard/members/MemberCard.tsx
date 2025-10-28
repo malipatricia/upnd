@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon, Edit2 } from 'lucide-react';
 import { MembershipStatus, UPNDMember } from '@/types';
 import { getButtonVisibility, getNextStatus, getStatusDisplayName } from '@/lib/approval';
 import { useSession } from 'next-auth/react';
@@ -8,9 +8,10 @@ interface MemberCardProps {
   member: UPNDMember;
   onViewDetails: () => void;
   onUpdateStatus: (memberId: string, status: MembershipStatus) => void;
+  onEditMember?: () => void;
 }
 
-export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCardProps) {
+export function MemberCard({ member, onViewDetails, onUpdateStatus, onEditMember }: MemberCardProps) {
   const { data: session } = useSession();
   const user = session?.user;
   
@@ -45,7 +46,7 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
   // For testing purposes, let's use a mock role if the user role is not available
   const userRole = user?.role || 'member';
   const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
-
+  const isAdmin = userRole === 'admin';
 
   const handleApprove = () => {
     const nextStatus = getNextStatus({ role: userRole as any }, member.status);
@@ -143,13 +144,26 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
       </div>
 
       <div className="flex items-center justify-between">
-        <button
-          onClick={onViewDetails}
-          className="flex items-center space-x-2 px-4 py-2 bg-upnd-red text-white rounded-lg hover:bg-upnd-red-dark transition-colors text-sm font-medium"
-        >
-          <Eye className="w-4 h-4" />
-          <span>View Details</span>
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={onViewDetails}
+            className="flex items-center space-x-2 px-4 py-2 bg-upnd-red text-white rounded-lg hover:bg-upnd-red-dark transition-colors text-sm font-medium"
+          >
+            <Eye className="w-4 h-4" />
+            <span>View Details</span>
+          </button>
+          
+          {isAdmin && onEditMember && (
+            <button
+              onClick={onEditMember}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              title="Edit Member Details"
+            >
+              <Edit2 className="w-4 h-4" />
+              <span>Edit</span>
+            </button>
+          )}
+        </div>
 
         {(buttonVisibility.canApprove || buttonVisibility.canReject || buttonVisibility.canUpdateStatus) && (
           <div className="flex space-x-2">

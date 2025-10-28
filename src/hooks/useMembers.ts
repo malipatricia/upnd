@@ -236,12 +236,57 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     }
   };
 
+  const updateMember = async (memberId: string, updatedData: Partial<UPNDMember>) => {
+    try {
+      const response = await fetch(`/api/members/${memberId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update member');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update local state with the updated member data
+        setMembers(prev => 
+          prev.map(member => 
+            member.id === memberId 
+              ? { 
+                  ...member, 
+                  fullName: result.member.fullName,
+                  nrcNumber: result.member.nrcNumber,
+                  dateOfBirth: result.member.dateOfBirth,
+                  phone: result.member.phone,
+                  email: result.member.email,
+                  residentialAddress: result.member.residentialAddress,
+                  jurisdiction: result.member.jurisdiction,
+                  partyCommitment: result.member.partyCommitment
+                } 
+              : member
+          )
+        );
+        return result.member;
+      }
+    } catch (error) {
+      console.error('Error updating member:', error);
+      throw error;
+    }
+  };
+
   return {
     members,
     statistics,
     loading,
     addMember,
     updateMemberStatus,
+    updateMember,
     getMemberById,
     bulkApprove
   };
