@@ -28,9 +28,15 @@ import { useSession } from 'next-auth/react';
 import Header from '../header';
 
 export default function Dashboard() {
-  const { members, statistics, loading } = useMembers();
-  const { cases } = useDisciplinary();
+  const [dateRange, setDateRange] = useState<{ startDate: Date; endDate: Date } | null>(null);
+  
+  const { members, statistics, loading } = useMembers(dateRange?.startDate, dateRange?.endDate);
+  const { cases } = useDisciplinary(dateRange?.startDate, dateRange?.endDate);
   const {data: session} = useSession()
+
+  const handleDateRangeChange = (range: { label: string; value: string; startDate: Date; endDate: Date }) => {
+    setDateRange({ startDate: range.startDate, endDate: range.endDate });
+  };
 
   if (loading) {
     return (
@@ -134,6 +140,14 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       <Header/>
+
+      {/* Date Range Filter */}
+      <div className="flex justify-end mb-4">
+        <DateRangeFilter 
+          onRangeChange={handleDateRangeChange}
+          selectedRange={dateRange ? 'custom' : 'last30'}
+        />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
