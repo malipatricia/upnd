@@ -152,17 +152,6 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onEditMember
             <Eye className="w-4 h-4" />
             <span>View Details</span>
           </button>
-          
-          {isAdmin && onEditMember && (
-            <button
-              onClick={onEditMember}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-              title="Edit Member Details"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span>Edit</span>
-            </button>
-          )}
         </div>
 
         {(buttonVisibility.canApprove || buttonVisibility.canReject || buttonVisibility.canUpdateStatus) && (
