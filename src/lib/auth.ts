@@ -61,6 +61,16 @@ export const authOptions: NextAuthOptions = {
           role: token.role as string,
         };
       }
+      
+      // Debug logging to see what's in the session
+      console.log('NextAuth Session Callback:', {
+        hasUser: !!user,
+        hasToken: !!token,
+        userRole: user?.role,
+        tokenRole: token?.role,
+        sessionRole: session.user?.role
+      });
+      
       return session;
     },
     async jwt({ token, user }) {
@@ -68,6 +78,14 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.id = user.id;
       }
+      
+      // Debug logging to see what's in the token
+      console.log('NextAuth JWT Callback:', {
+        hasUser: !!user,
+        userRole: user?.role,
+        tokenRole: token?.role
+      });
+      
       return token;
     },
   },
