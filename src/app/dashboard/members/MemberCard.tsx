@@ -1,6 +1,8 @@
 import React from 'react';
 import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
 import { MembershipStatus, UPNDMember } from '@/types';
+import { getButtonVisibility, getNextStatus, getStatusDisplayName } from '@/lib/approval';
+import { useSession } from 'next-auth/react';
 
 interface MemberCardProps {
   member: UPNDMember;
@@ -38,6 +40,21 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
     }
   };
 
+  // Get button visibility based on user role and member status
+  // For testing purposes, let's use a mock role if the user role is not available
+  const userRole = user?.role || 'member';
+  const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
+
+
+  const handleApprove = () => {
+    const nextStatus = getNextStatus({ role: userRole as any }, member.status);
+    onUpdateStatus(member.id, nextStatus);
+  };
+
+  const handleReject = () => {
+    onUpdateStatus(member.id, 'Rejected');
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border-l-4 border-upnd-red">
       <div className="flex items-start justify-between mb-4">
@@ -52,7 +69,7 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
         </div>
         <div className={`flex items-center space-x-1 px-3 py-1 text-xs font-medium border rounded-full ${getStatusColor(member.status)}`}>
           {getStatusIcon(member.status)}
-          <span>{member.status}</span>
+          <span>{getStatusDisplayName(member.status)}</span>
         </div>
       </div>
 

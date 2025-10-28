@@ -167,7 +167,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
       phone: memberData.phone || '',
       email: memberData.email,
       endorsements: memberData.endorsements || [],
-      status: 'Pending Section Review',
+      status: 'pending section review',
       registrationDate: new Date().toISOString(),
       jurisdiction: memberData.jurisdiction || {
         province: '',

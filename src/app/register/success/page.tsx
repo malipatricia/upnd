@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { CheckCircle, Shield, Clock, Phone, Mail, Home } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import useSWR from 'swr';
 import { fetcher } from '@/services/fetcher';
 import { UPNDMember } from '@/types';
 
-export default function RegistrationSuccess() {
+function RegistrationSuccessContent() {
   const params = useSearchParams();
   const id = params.get('memberId');
   const memberId = id ? decodeURIComponent(id) : '';
@@ -196,5 +196,19 @@ export default function RegistrationSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegistrationSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Loading registration data...</p>
+        </div>
+      </div>
+    }>
+      <RegistrationSuccessContent />
+    </Suspense>
   );
 }

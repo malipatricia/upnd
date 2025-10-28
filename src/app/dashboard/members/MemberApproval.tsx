@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMembers } from '../../hooks/useMembers';
-import { useAuth } from '../../context/AuthContext';
+import { useSession } from 'next-auth/react';
 import { MemberCard } from './MemberCard';
 import { MemberModal } from './MemberModal';
 import { 
@@ -14,6 +14,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { UPNDMember, MembershipStatus } from '../../types';
+import { getApprovalLevel } from '../../lib/approval';
 
 export function MemberApproval() {
   const { members, updateMemberStatus, approveMember, bulkApprove, loading } = useMembers();
@@ -22,6 +23,13 @@ export function MemberApproval() {
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedMember, setSelectedMember] = useState<UPNDMember | null>(null);
+
+  // Simple permission check
+  const hasPermission = (permission: string) => {
+    if (!user?.role) return false;
+    const adminRoles = ['admin', 'provinceadmin', 'districtadmin', 'wardadmin', 'branchadmin', 'sectionadmin'];
+    return adminRoles.includes(user.role) && permission === 'approve_members';
+  };
 
   // Filter members based on user's jurisdiction and permissions
   const getFilteredMembers = () => {
@@ -69,7 +77,7 @@ export function MemberApproval() {
   };
 
   const filteredMembers = getFilteredMembers();
-  const pendingMembers = filteredMembers.filter(m => m.status.includes('Pending'));
+  const pendingMembers = filteredMembers.filter(m => m.status.includes('pending'));
 
   const handleBulkApprove = () => {
     if (selectedMembers.length > 0) {
@@ -94,16 +102,6 @@ export function MemberApproval() {
     }
   };
 
-  const getApprovalLevel = (status: MembershipStatus): string => {
-    switch (status) {
-      case 'Pending Section Review': return 'Section Level';
-      case 'Pending Branch Review': return 'Branch Level';
-      case 'Pending Ward Review': return 'Ward Level';
-      case 'Pending District Review': return 'District Level';
-      case 'Pending Provincial Review': return 'Provincial Level';
-      default: return 'Final Review';
-    }
-  };
 
   const canApproveMember = (member: UPNDMember): boolean => {
     if (!user) return false;
@@ -322,7 +320,7 @@ export function MemberApproval() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredMembers.map((member) => (
           <div key={member.id} className="relative">
-            {hasPermission('approve_members') && member.status.includes('Pending') && (
+            {hasPermission('approve_members') && member.status.includes('pending') && (
               <div className="absolute top-4 left-4 z-10">
                 <input
                   type="checkbox"

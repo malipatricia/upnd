@@ -63,10 +63,13 @@ export function LoginForm() {
 
   // 🧪 Demo Credentials
   const demoCredentials = [
-    { email: "admin@upnd.zm", role: "National Admin", name: "Hakainde Hichilema" },
-    { email: "provincial@upnd.zm", role: "Provincial Admin", name: "Cornelius Mweetwa" },
-    { email: "district@upnd.zm", role: "District Admin", name: "Mutale Nalumango" },
-    { email: "branch@upnd.zm", role: "Branch Admin", name: "Sylvia Masebo" },
+    { email: "admin@upnd.zm", role: "admin", name: "Hakainde Hichilema" },
+    { email: "provinceadmin@upnd.zm", role: "provinceadmin", name: "Cornelius Mweetwa" },
+    { email: "districtadmin@upnd.zm", role: "districtadmin", name: "Mutale Nalumango" },
+    { email: "wardadmin@upnd.zm", role: "wardadmin", name: "Sylvia Mweetwa" },
+    { email: "branchadmin@upnd.zm", role: "branchadmin", name: "Jack Mwiimbu" },
+    { email: "sectionadmin@upnd.zm", role: "sectionadmin", name: "Peter Sinkamba" },
+    { email: "member@upnd.zm", role: "member", name: "John Doe" },
   ];
 
   return (
