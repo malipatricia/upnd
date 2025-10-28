@@ -48,6 +48,15 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus }: MemberCard
     canUpdateStatus: false
   };
 
+  // Debug logging to see what's happening
+  console.log('MemberCard Debug:', {
+    user: user ? { role: user.role, name: user.name, email: user.email } : 'No user',
+    memberStatus: member.status,
+    buttonVisibility,
+    userRoleType: typeof user?.role,
+    userRoleValue: user?.role
+  });
+
 
   const handleApprove = () => {
     if (user?.role) {

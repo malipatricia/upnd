@@ -53,12 +53,20 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
         };
+      } else if (token) {
+        // Fallback to token if user is not available
+        session.user = {
+          ...session.user,
+          id: token.id as string,
+          role: token.role as string,
+        };
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.id = user.id;
       }
       return token;
     },
