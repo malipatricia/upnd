@@ -15,6 +15,13 @@
       "when": 1761141324049,
       "tag": "0001_right_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1761586285330,
+      "tag": "0002_flaky_joystick",
+      "breakpoints": true
     }
   ]
 }

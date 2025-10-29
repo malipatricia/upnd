@@ -8,13 +8,11 @@ interface MemberCardProps {
   member: UPNDMember;
   onViewDetails: () => void;
   onUpdateStatus: (memberId: string, status: MembershipStatus) => void;
-  onEditMember?: () => void;
+  onApproveMember?: (member: UPNDMember) => void;
+  canApprove?: boolean;
 }
 
-export function MemberCard({ member, onViewDetails, onUpdateStatus, onEditMember }: MemberCardProps) {
-  const { data: session } = useSession();
-  const user = session?.user;
-  
+export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMember, canApprove }: MemberCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Approved':
@@ -154,24 +152,20 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onEditMember
           </button>
         </div>
 
-        {(buttonVisibility.canApprove || buttonVisibility.canReject || buttonVisibility.canUpdateStatus) && (
+        {member.status !== 'Approved' && member.status !== 'Rejected' && canApprove && onApproveMember && (
           <div className="flex space-x-2">
-            {buttonVisibility.canApprove && (
-              <button
-                onClick={handleApprove}
-                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-              >
-                Approve
-              </button>
-            )}
-            {buttonVisibility.canReject && (
-              <button
-                onClick={handleReject}
-                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-              >
-                Reject
-              </button>
-            )}
+            <button
+              onClick={() => onApproveMember(member)}
+              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+            >
+              Approve
+            </button>
+            <button
+              onClick={() => onUpdateStatus(member.id, 'Rejected')}
+              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+            >
+              Reject
+            </button>
           </div>
         )}
       </div>
