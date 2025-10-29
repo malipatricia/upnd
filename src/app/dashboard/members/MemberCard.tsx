@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon, Edit2 } from 'lucide-react';
 import { MembershipStatus, UPNDMember } from '@/types';
 import { getButtonVisibility, getNextStatus, getStatusDisplayName } from '@/lib/approval';
 import { useSession } from 'next-auth/react';
@@ -44,7 +44,7 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
   // For testing purposes, let's use a mock role if the user role is not available
   const userRole = user?.role || 'member';
   const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
-
+  const isAdmin = userRole === 'admin';
 
   const handleApprove = () => {
     const nextStatus = getNextStatus({ role: userRole as any }, member.status);
@@ -142,13 +142,15 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
       </div>
 
       <div className="flex items-center justify-between">
-        <button
-          onClick={onViewDetails}
-          className="flex items-center space-x-2 px-4 py-2 bg-upnd-red text-white rounded-lg hover:bg-upnd-red-dark transition-colors text-sm font-medium"
-        >
-          <Eye className="w-4 h-4" />
-          <span>View Details</span>
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={onViewDetails}
+            className="flex items-center space-x-2 px-4 py-2 bg-upnd-red text-white rounded-lg hover:bg-upnd-red-dark transition-colors text-sm font-medium"
+          >
+            <Eye className="w-4 h-4" />
+            <span>View Details</span>
+          </button>
+        </div>
 
         {member.status !== 'Approved' && member.status !== 'Rejected' && canApprove && onApproveMember && (
           <div className="flex space-x-2">

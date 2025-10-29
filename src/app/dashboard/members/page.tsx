@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { Search, Filter, Users, Shield } from 'lucide-react';
 import { useMembers } from '@/hooks/useMembers';
 import { UPNDMember } from '@/types';
-import { MemberModal } from './MemberModal';
+import { EditMemberModal } from './EditMemberModal';
 import { MemberCard } from './MemberCard';
 
 export default function MembersList() {
-  const { members, updateMemberStatus, loading } = useMembers();
+  const { members, updateMemberStatus, updateMember, loading } = useMembers();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<UPNDMember | null>(null);
@@ -120,6 +120,7 @@ export default function MembersList() {
             member={member}
             onViewDetails={() => setSelectedMember(member)}
             onUpdateStatus={updateMemberStatus}
+            onEditMember={() => setSelectedMember(member)}
           />
         ))}
       </div>
@@ -134,10 +135,11 @@ export default function MembersList() {
 
       {/* Member Details Modal */}
       {selectedMember && (
-        <MemberModal
+        <EditMemberModal
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
           onUpdateStatus={updateMemberStatus}
+          onUpdateMember={updateMember}
         />
       )}
     </div>
