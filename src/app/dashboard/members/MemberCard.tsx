@@ -42,7 +42,7 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
 
   // Get button visibility based on user role and member status
   // For testing purposes, let's use a mock role if the user role is not available
-  const userRole = user?.role || 'member';
+  const userRole = member.role || 'member';
   const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
   const isAdmin = userRole === 'admin';
 
