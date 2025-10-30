@@ -2,10 +2,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { members, disciplinaryCases, roles, permissions, rolePermissions } from "@/drizzle/schema";
+import { members, disciplinaryCases, roles, permissions, rolePermissions, provinces, districts } from "@/drizzle/schema";
 import { AnyColumn, eq, count, sql, and, gte, lte, like } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
-import { addMemberSchema, loginSchema } from "@/schema/schema";
+import { addMemberSchema, districtSchema, loginSchema, provinceSchema } from "@/schema/schema";
 import z from "zod";
 
 export async function loginAction(
@@ -439,4 +439,26 @@ export async function updateRolePermissionsAction(roleId: string, permissionIds:
   } catch (err: any) {
     return { error: err.message || "Failed to update role permissions" };
   }
+}
+
+// --- Province ---
+export async function addProvinceAction(name: string) {
+  provinceSchema.parse({ name });
+  await db.insert(provinces).values({ name });
+}
+
+export async function deleteProvinceAction(id: string) {
+  if (!id) throw new Error("Province ID is required");
+  await db.delete(provinces).where(eq(provinces.id, id));
+}
+
+// --- District ---
+export async function addDistrictAction(name: string, provinceId: string) {
+  districtSchema.parse({ name, provinceId });
+  await db.insert(districts).values({ name, provinceId });
+}
+
+export async function deleteDistrictAction(id: string) {
+  if (!id) throw new Error("District ID is required");
+  await db.delete(districts).where(eq(districts.id, id));
 }

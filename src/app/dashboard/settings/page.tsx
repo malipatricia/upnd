@@ -11,13 +11,15 @@ import {
   Lock,
   Globe,
   Save,
-  RefreshCw
+  RefreshCw,
+  LocateFixed
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { addPermissionAction, addRoleAction } from '@/server/server.actions';
 import { AddPermissionForm } from './addPermission';
 import { AddRoleForm } from './addRole';
 import ManageRolesPermissionsForm from './setRolesPermissions';
+import ZoneSettings from './zoneSettings';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -75,7 +77,8 @@ export default function Settings() {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'system', label: 'System', icon: Database },
-    { id: 'permissions', label: 'Permissions', icon: User }
+    { id: 'permissions', label: 'Permissions', icon: User },
+    { id: 'zone', label: 'Zones', icon: LocateFixed }
   ];
 
   const handleSettingChange = (category: string, key: string, value: any) => {
@@ -445,6 +448,15 @@ export default function Settings() {
     </div>
   );
 
+  const renderZoneSettings = () => (
+     <div className="space-y-6">
+      <h4 className="font-semibold text-upnd-black">Zone Settings</h4>
+      <p className="text-sm text-gray-600">Manage provinces and districts in the UPND scope</p>
+
+      <ZoneSettings/>
+    </div>
+  );
+
   if (!session?.user) {
     return (
       <div className="p-6">
@@ -508,13 +520,6 @@ export default function Settings() {
               <h2 className="text-2xl font-bold text-upnd-black">
                 {tabs.find(tab => tab.id === activeTab)?.label} Settings
               </h2>
-              <button
-                onClick={handleSave}
-                className="flex items-center space-x-2 bg-gradient-to-r from-upnd-red to-upnd-yellow text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all font-semibold"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save Changes</span>
-              </button>
             </div>
 
             {activeTab === 'general' && renderGeneralSettings()}
@@ -523,6 +528,7 @@ export default function Settings() {
             {activeTab === 'security' && renderSecuritySettings()}
             {activeTab === 'system' && renderSystemSettings()}
             {activeTab === 'permissions' && renderPermissionSettings()}
+            {activeTab === 'zone' && renderZoneSettings()}
           </div>
         </div>
       </div>

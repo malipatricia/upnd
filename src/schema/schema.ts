@@ -117,3 +117,14 @@ export const addMemberSchema = z
       });
     }
   });;
+
+  // Province
+export const provinceSchema = z.object({
+  name: z.string().min(1, "Province name is required"),
+});
+
+// District
+export const districtSchema = z.object({
+  name: z.string().min(1, "District name is required"),
+  provinceId: z.string().uuid("Invalid province ID"),
+});
