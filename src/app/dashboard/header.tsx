@@ -1,16 +1,32 @@
+"use client";
+
 import { DateRangeFilter } from "@/app/dashboard/DateRangeFilter";
 import { ExportDashboard } from "@/app/dashboard/ExportDashboard";
 import { NotificationPanel } from "@/app/dashboard/NotificationPanel";
-import { useAuth } from "@/context/AuthContext";
-import { useMembers } from "@/hooks/useMembers";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-export default function Header(){
-  const [selectedDateRange, setSelectedDateRange] = useState('last30');
-    const { members, statistics, loading } = useMembers();
-        const { data: session } = useSession(); 
-        const user = session?.user;
+interface HeaderProps {
+  onDateRangeChange: (range: {
+    label: string;
+    value: string;
+    startDate: Date;
+    endDate: Date;
+  }) => void;
+  selectedRange: string;
+  statistics: any;
+  members: any[];
+}
+
+export default function Header({
+  onDateRangeChange,
+  selectedRange,
+  statistics,
+  members
+}: HeaderProps) {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   const [notifications, setNotifications] = useState([
     {
       id: '1',
@@ -50,25 +66,30 @@ export default function Header(){
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-    return <div>
+  return (
+    <div>
       <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-upnd-black">
             Welcome back, {user?.name || 'Admin'}
           </h1>
-          <p className="text-upnd-yellow font-medium">Unity, Work, Progress - Membership Overview</p>
+          <p className="text-upnd-yellow font-medium">
+            Unity, Work, Progress - Membership Overview
+          </p>
         </div>
         <div className="flex items-center space-x-3">
           <DateRangeFilter
-            onRangeChange={(range) => setSelectedDateRange(range.value)}
-            selectedRange={selectedDateRange}
+            onRangeChange={onDateRangeChange}
+            selectedRange={selectedRange}
           />
           <NotificationPanel
             notifications={notifications}
             onDismiss={handleDismissNotification}
             onMarkAllRead={handleMarkAllRead}
           />
-          <ExportDashboard statistics={statistics!} members={members} />
+          <ExportDashboard statistics={statistics} members={members} />
         </div>
-      </div></div>
+      </div>
+    </div>
+  );
 }

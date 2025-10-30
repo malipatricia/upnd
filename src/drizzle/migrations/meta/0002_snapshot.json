@@ -1,6 +1,6 @@
 {
-  "id": "bfc877cc-c2c1-449f-b954-e6762f03fc3a",
-  "prevId": "6bd93f19-6605-4323-9312-f2293e4ee9ce",
+  "id": "c39e979e-d0ad-4301-9015-03bbd438c43c",
+  "prevId": "6606c0c8-50f7-4b47-aa63-f853fff8b49f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -80,15 +80,15 @@
         "accounts_user_id_members_id_fk": {
           "name": "accounts_user_id_members_id_fk",
           "tableFrom": "accounts",
-          "tableTo": "members",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "members",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -164,28 +164,28 @@
         "communication_recipients_communication_id_communications_id_fk": {
           "name": "communication_recipients_communication_id_communications_id_fk",
           "tableFrom": "communication_recipients",
-          "tableTo": "communications",
           "columnsFrom": [
             "communication_id"
           ],
+          "tableTo": "communications",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "communication_recipients_member_id_members_id_fk": {
           "name": "communication_recipients_member_id_members_id_fk",
           "tableFrom": "communication_recipients",
-          "tableTo": "members",
           "columnsFrom": [
             "member_id"
           ],
+          "tableTo": "members",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -384,25 +384,25 @@
         "disciplinary_cases_member_id_members_id_fk": {
           "name": "disciplinary_cases_member_id_members_id_fk",
           "tableFrom": "disciplinary_cases",
-          "tableTo": "members",
           "columnsFrom": [
             "member_id"
           ],
+          "tableTo": "members",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "disciplinary_cases_case_number_unique": {
           "name": "disciplinary_cases_case_number_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "case_number"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -451,15 +451,15 @@
         "districts_province_id_provinces_id_fk": {
           "name": "districts_province_id_provinces_id_fk",
           "tableFrom": "districts",
-          "tableTo": "provinces",
           "columnsFrom": [
             "province_id"
           ],
+          "tableTo": "provinces",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -556,37 +556,37 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "event_rsvps_event_id_events_id_fk": {
           "name": "event_rsvps_event_id_events_id_fk",
           "tableFrom": "event_rsvps",
-          "tableTo": "events",
           "columnsFrom": [
             "event_id"
           ],
+          "tableTo": "events",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "event_rsvps_member_id_members_id_fk": {
           "name": "event_rsvps_member_id_members_id_fk",
           "tableFrom": "event_rsvps",
-          "tableTo": "members",
           "columnsFrom": [
             "member_id"
           ],
+          "tableTo": "members",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -757,12 +757,11 @@
           "notNull": false,
           "default": false
         },
-        "role": {
-          "name": "role",
-          "type": "text",
+        "roles": {
+          "name": "roles",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'member'"
+          "notNull": false
         },
         "last_login_at": {
           "name": "last_login_at",
@@ -900,10 +899,9 @@
         },
         "status": {
           "name": "status",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'Pending Section Review'"
+          "notNull": false
         },
         "profile_image": {
           "name": "profile_image",
@@ -940,36 +938,63 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "members_roles_roles_id_fk": {
+          "name": "members_roles_roles_id_fk",
+          "tableFrom": "members",
+          "columnsFrom": [
+            "roles"
+          ],
+          "tableTo": "roles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "members_status_status_id_fk": {
+          "name": "members_status_status_id_fk",
+          "tableFrom": "members",
+          "columnsFrom": [
+            "status"
+          ],
+          "tableTo": "status",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "members_email_unique": {
           "name": "members_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "members_password_hash_unique": {
           "name": "members_password_hash_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "password_hash"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "members_membership_id_unique": {
           "name": "members_membership_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "membership_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "members_nrc_number_unique": {
           "name": "members_nrc_number_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "nrc_number"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1064,15 +1089,15 @@
         "membership_cards_member_id_members_id_fk": {
           "name": "membership_cards_member_id_members_id_fk",
           "tableFrom": "membership_cards",
-          "tableTo": "members",
           "columnsFrom": [
             "member_id"
           ],
+          "tableTo": "members",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1111,10 +1136,10 @@
       "uniqueConstraints": {
         "permissions_name_unique": {
           "name": "permissions_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1158,10 +1183,10 @@
       "uniqueConstraints": {
         "policy_areas_name_unique": {
           "name": "policy_areas_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1205,10 +1230,10 @@
       "uniqueConstraints": {
         "provinces_name_unique": {
           "name": "provinces_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1237,28 +1262,28 @@
         "role_permissions_role_id_roles_id_fk": {
           "name": "role_permissions_role_id_roles_id_fk",
           "tableFrom": "role_permissions",
-          "tableTo": "roles",
           "columnsFrom": [
             "role_id"
           ],
+          "tableTo": "roles",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "role_permissions_permission_id_permissions_id_fk": {
           "name": "role_permissions_permission_id_permissions_id_fk",
           "tableFrom": "role_permissions",
-          "tableTo": "permissions",
           "columnsFrom": [
             "permission_id"
           ],
+          "tableTo": "permissions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1283,6 +1308,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -1291,10 +1322,10 @@
       "uniqueConstraints": {
         "roles_name_unique": {
           "name": "roles_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1329,19 +1360,59 @@
         "sessions_user_id_members_id_fk": {
           "name": "sessions_user_id_members_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "members",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "members",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.status": {
+      "name": "status",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "status_name_unique": {
+          "name": "status_name_unique",
+          "columns": [
+            "name"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1389,10 +1460,10 @@
       "uniqueConstraints": {
         "upnd_positions_name_unique": {
           "name": "upnd_positions_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1436,10 +1507,10 @@
       "uniqueConstraints": {
         "violation_types_name_unique": {
           "name": "violation_types_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1449,10 +1520,10 @@
   },
   "enums": {},
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

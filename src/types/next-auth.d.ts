@@ -8,6 +8,7 @@ declare module "next-auth" {
       email?: string | null;
       name?: string | null;
       constituency?: string;
+      permissions?: string[]; // optional
     } & DefaultSession["user"];
   }
 
@@ -17,6 +18,7 @@ declare module "next-auth" {
     email?: string | null;
     name?: string | null;
     constituency?: string;
+    permissions?: string[]; // optional
   }
 }
 
@@ -25,5 +27,6 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: string;
     constituency?: string;
+    permissions?: string[]; // optional
   }
 }

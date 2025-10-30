@@ -2,8 +2,8 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { members, disciplinaryCases } from "@/drizzle/schema";
-import { AnyColumn, eq, count, sql } from "drizzle-orm";
+import { members, disciplinaryCases, roles, permissions, rolePermissions } from "@/drizzle/schema";
+import { AnyColumn, eq, count, sql, and, gte, lte, like } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 import { addMemberSchema, loginSchema } from "@/schema/schema";
 import z from "zod";
@@ -20,9 +20,9 @@ export async function loginAction(
 
   // Find user by email
   const [user] = await db
-    .select()
-    .from(members)
-    .where(eq(members.email, email.toLowerCase()));
+    .query
+    .members
+    .findMany({where: eq(members.email, email.toLowerCase()),with: {role: true}});
 
   if (!user) return { error: "Invalid email or password" };
 
@@ -35,7 +35,7 @@ export async function loginAction(
     user: {
       id: user.id,
       name: user.fullName,
-      role: user.role,
+      role: user.role?.name,
       email: user.email,
     },
   };
@@ -105,61 +105,77 @@ export async function registerMember(formData: unknown) {
 
 // Dashboard statistics functions
 export async function getDashboardStatistics(startDate?: Date, endDate?: Date) {
+  function toPgDate(date: Date) {
+    return date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+  }
+
   try {
-    // Build date filter conditions
-    const dateFilter = startDate && endDate 
-      ? sql`${members.registrationDate} >= ${startDate} AND ${members.registrationDate} <= ${endDate}`
-      : sql`1=1`;
+    // Build date filters
+    const memberDateFilter = startDate && endDate
+      ? and(
+          gte(members.registrationDate, startDate),
+          lte(members.registrationDate, endDate)
+        )
+      : undefined;
 
-    // Get total members count
-    const [totalMembersResult] = await db
-      .select({ count: count() })
+    const disciplinaryDateFilter = startDate && endDate
+      ? and(
+          gte(disciplinaryCases.dateReported, toPgDate(startDate)),
+          lte(disciplinaryCases.dateReported, toPgDate(endDate))
+        )
+      : undefined;
+
+    // Total members
+    const [totalMembersResult] = await db.select({ total: count() })
       .from(members)
-      .where(dateFilter);
+      .where(memberDateFilter);
 
-    // Get pending applications count
-    const [pendingApplicationsResult] = await db
-      .select({ count: count() })
+
+    // Pending applications
+    const [pendingApplicationsResult] = await db.select({ total: count() })
       .from(members)
-      .where(sql`${members.status} LIKE 'Pending%' AND ${dateFilter}`);
+      .where(and(
+        like(sql`${members.status}::text`, 'Pending%'),
+        ...(memberDateFilter ? [memberDateFilter] : [])
+      ));
 
-    // Get approved members count
-    const [approvedMembersResult] = await db
-      .select({ count: count() })
+    // Approved members
+    const [approvedMembersResult] = await db.select({ total: count() })
       .from(members)
-      .where(sql`${members.status} = 'Approved' AND ${dateFilter}`);
+      .where(and(
+        like(sql`${members.status}::text`, 'Approved%'),
+        ...(memberDateFilter ? [memberDateFilter] : [])
+      ));
 
-    // Get active disciplinary cases count
-    const disciplinaryDateFilter = startDate && endDate 
-      ? sql`${disciplinaryCases.dateReported} >= ${startDate} AND ${disciplinaryCases.dateReported} <= ${endDate}`
-      : sql`1=1`;
-
-    const [activeCasesResult] = await db
-      .select({ count: count() })
+    // Active disciplinary cases
+    const [activeCasesResult] = await db.select({ total: count() })
       .from(disciplinaryCases)
-      .where(sql`${disciplinaryCases.status} = 'Active' AND ${disciplinaryDateFilter}`);
+      .where(and(
+        eq(disciplinaryCases.status, "Active"),
+        ...(disciplinaryDateFilter ? [disciplinaryDateFilter] : [])
+      ));
 
-    // Get provincial distribution
+    // Provincial distribution
     const provincialDistribution = await db
       .select({
         province: members.province,
         count: count()
       })
       .from(members)
-      .where(dateFilter)
+      .where(memberDateFilter)
       .groupBy(members.province);
 
-    // Get status distribution
+    // Status distribution
     const statusDistribution = await db
       .select({
         status: members.status,
         count: count()
       })
       .from(members)
-      .where(dateFilter)
+      .where(memberDateFilter)
       .groupBy(members.status);
 
-    // Get monthly trends (last 12 months or within date range)
+    // Monthly trends (last 12 months or within date range)
     const monthlyTrends = await db
       .select({
         month: sql<string>`TO_CHAR(${members.registrationDate}, 'Mon')`,
@@ -168,12 +184,12 @@ export async function getDashboardStatistics(startDate?: Date, endDate?: Date) {
       })
       .from(members)
       .where(startDate && endDate 
-        ? dateFilter 
+        ? memberDateFilter 
         : sql`${members.registrationDate} >= NOW() - INTERVAL '12 months'`)
       .groupBy(sql`TO_CHAR(${members.registrationDate}, 'Mon')`, sql`EXTRACT(YEAR FROM ${members.registrationDate})`)
       .orderBy(sql`EXTRACT(YEAR FROM ${members.registrationDate})`, sql`TO_CHAR(${members.registrationDate}, 'Mon')`);
 
-    // Convert to the expected format
+    // Convert distributions
     const provincialDistributionObj: Record<string, number> = {};
     provincialDistribution.forEach(item => {
       provincialDistributionObj[item.province] = item.count;
@@ -190,27 +206,32 @@ export async function getDashboardStatistics(startDate?: Date, endDate?: Date) {
     }));
 
     return {
-      totalMembers: totalMembersResult.count,
-      pendingApplications: pendingApplicationsResult.count,
-      approvedMembers: approvedMembersResult.count,
-      activeCases: activeCasesResult.count,
+      totalMembers: totalMembersResult?.total ?? 0,
+      pendingApplications: pendingApplicationsResult?.total ?? 0,
+      approvedMembers: approvedMembersResult?.total ?? 0,
+      activeCases: activeCasesResult?.total ?? 0,
+      rejectedApplications: 0,
+      suspendedMembers: 0,
       provincialDistribution: provincialDistributionObj,
-      monthlyTrends: monthlyTrendsArray,
-      statusDistribution: statusDistributionObj
+      statusDistribution: statusDistributionObj,
+      monthlyTrends: monthlyTrendsArray
     };
   } catch (error) {
-    console.error('Error fetching dashboard statistics:', error);
+    console.error("Error fetching dashboard statistics:", error);
     return {
       totalMembers: 0,
       pendingApplications: 0,
       approvedMembers: 0,
       activeCases: 0,
+      rejectedApplications: 0,
+      suspendedMembers: 0,
       provincialDistribution: {},
-      monthlyTrends: [],
-      statusDistribution: {}
+      statusDistribution: {},
+      monthlyTrends: []
     };
   }
 }
+
 
 export async function getAllMembers(startDate?: Date, endDate?: Date) {
   try {
@@ -223,6 +244,7 @@ export async function getAllMembers(startDate?: Date, endDate?: Date) {
       .from(members)
       .where(dateFilter)
       .orderBy(members.createdAt);
+
 
     return allMembers;
   } catch (error) {
@@ -250,12 +272,14 @@ export async function getDisciplinaryCases(startDate?: Date, endDate?: Date) {
   }
 }
 
-export async function updateMemberStatus(memberId: string, status: string) {
+import { MembershipStatus } from '../types'; // wherever you define it
+
+export async function updateMemberStatus(memberId: string, status: MembershipStatus) {
   try {
     const result = await db
       .update(members)
       .set({ 
-        status,
+        status, // ✅ now matches the enum type
         updatedAt: new Date()
       })
       .where(eq(members.id, memberId))
@@ -272,7 +296,8 @@ export async function updateMemberStatus(memberId: string, status: string) {
   }
 }
 
-export async function bulkUpdateMemberStatus(memberIds: string[], status: string) {
+
+export async function bulkUpdateMemberStatus(memberIds: string[], status: MembershipStatus) {
   try {
     const result = await db
       .update(members)
@@ -287,5 +312,131 @@ export async function bulkUpdateMemberStatus(memberIds: string[], status: string
   } catch (error) {
     console.error('Error bulk updating member status:', error);
     return { error: 'Failed to bulk update member status' };
+  }
+}
+// Add a new Role
+export async function addRoleAction(
+  name: string,
+  description?: string,
+  permissionIds: string[] = []
+): Promise<{ id: string; name: string; description: string | null } | { error: string }> {
+  if (!name.trim()) return { error: 'Role name is required' };
+
+  try {
+    const [role] = await db.insert(roles)
+      .values({ name, description: description ?? null })
+      .returning({ id: roles.id, name: roles.name, description: roles.description });
+
+    if (!role) return { error: 'Failed to insert role' };
+
+    if (permissionIds.length > 0) {
+      const values = permissionIds.map(permissionId => ({
+        roleId: role.id,
+        permissionId,
+      }));
+      await db.insert(rolePermissions).values(values);
+    }
+
+    return role;
+  } catch (err: any) {
+    if (err.cause?.code === '23505') return { error: `Role "${name}" already exists.` };
+    return { error: err.message || 'Failed to add role' };
+  }
+}
+
+
+export async function addPermissionAction(
+  name: string,
+  description?: string,
+  roleIds: string[] = []
+) {
+  if (!name.trim()) throw new Error('Permission name is required');
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      // 1️⃣ Insert permission
+      const [permission] = await tx.insert(permissions)
+        .values({ name, description: description ?? null })
+        .returning({ id: permissions.id, name: permissions.name });
+
+      if (!permission) throw new Error('Failed to insert permission');
+
+      // 2️⃣ Insert role-permission links if any
+      if (roleIds.length > 0) {
+        const values = roleIds.map((roleId) => ({
+          roleId,
+          permissionId: permission.id as string,
+        }));
+
+        await tx.insert(rolePermissions).values(values);
+      }
+
+      return permission;
+    });
+
+    return result;
+
+  } catch (err: any) {
+    // Keep the Postgres unique violation check
+    if (err?.cause?.code === '23505') {
+      return { error: `Permission "${name}" already exists.` };
+    }
+
+    if (err) {
+      return { error: err };
+    }
+
+    console.error('Error adding permission:', err);
+    return { error: err?.message || 'Failed to add permission' };
+  }
+}
+export async function getMemberRolesAndPermissions(memberId: string) {
+  // 1. Get the member along with their role
+  const [memberWithRole] = await db
+    .select({
+      id: members.id,
+      email: members.email,
+      roleId: roles.id,
+      roleName: roles.name,
+    })
+    .from(members)
+    .leftJoin(roles, eq(members.role, roles.id))
+    .where(eq(members.id, memberId));
+
+  if (!memberWithRole || !memberWithRole.roleId) {
+    return { roles: [], permissions: [] };
+  }
+
+  // 2. Fetch permissions for this role
+  const permissionRows = await db
+    .select({ id: permissions.id, name: permissions.name })
+    .from(permissions)
+    .innerJoin(rolePermissions, eq(rolePermissions.permissionId, permissions.id))
+    .where(eq(rolePermissions.roleId, memberWithRole.roleId));
+
+    console.log(permissions)
+
+  return {
+    roles: [memberWithRole.roleName],
+    permissions: permissionRows.map(p => p.name),
+  };
+}
+export async function updateRolePermissionsAction(roleId: string, permissionIds: string[]) {
+  try {
+    // Remove all existing permissions for the role
+      await db
+    .delete(rolePermissions)
+    .where(eq(rolePermissions.roleId, roleId));
+
+    // Insert new permissions
+    if (permissionIds.length > 0) {
+      await db.insert(rolePermissions).values(
+        permissionIds.map(pid => ({ roleId, permissionId: pid }))
+      );
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Failed to update role permissions" };
   }
 }

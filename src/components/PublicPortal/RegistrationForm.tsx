@@ -29,12 +29,14 @@ import { zambianProvinces, provincialDistricts } from "@/data/zambia";
 import { EyeOff } from "lucide-react";
 import { useForm } from 'react-hook-form';
 import { addMemberSchema } from '@/schema/schema';
-import { Endorsement } from '@/types';
+import { Endorsement, Role } from '@/types';
 import { DatePicker } from '@/services/date';
 import { Textarea } from '../ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '../ui/label';
 import { toast } from 'sonner';
+import useSWR from 'swr';
+import { fetcher } from '@/services/fetcher';
 
 export default function RegistrationForm() {
   const [showPass, setShowPass] = React.useState(false);
@@ -62,7 +64,7 @@ export default function RegistrationForm() {
       ward: "",
       branch: "",
       section: "",
-      role: "member",
+      role: "",
       userId: id,
       endorsements: [
       { endorserName: '', membershipId: '', endorsementDate: new Date },
@@ -87,6 +89,15 @@ export default function RegistrationForm() {
       );
     }
   }, [mounted, form.formState.errors]);
+
+  let roles: Role[] = []
+   const { data: role, error } = useSWR(`/api/roles`,fetcher);
+   if(!role){
+    <div>loading roles</div>
+   }
+   if(role){
+    roles = role
+   }
 
   async function onSubmit(values: z.infer<typeof addMemberSchema>) {
     // generate membership ID
@@ -246,6 +257,32 @@ export default function RegistrationForm() {
                 </FormItem>
               )}
             />
+              </div>
+              <div>
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="role">Role</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select user role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {roles.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                {d.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="md:col-span-2">

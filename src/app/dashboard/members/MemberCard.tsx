@@ -44,7 +44,8 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
   // For testing purposes, let's use a mock role if the user role is not available
   const userRole = member.role || 'member';
   const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole.name === 'admin';
+  console.log(member)
 
   const handleApprove = () => {
     const nextStatus = getNextStatus({ role: userRole as any }, member.status);
@@ -54,6 +55,7 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
   const handleReject = () => {
     onUpdateStatus(member.id, 'Rejected');
   };
+  console.log(member)
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border-l-4 border-upnd-red">

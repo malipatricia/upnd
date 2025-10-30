@@ -19,9 +19,10 @@ const handler = NextAuth({
         if (!email || !password) return null;
 
         const [user] = await db
-          .select()
-          .from(members)
-          .where(eq(members.email, email.toLowerCase()));
+          .query
+          .members
+          .findMany
+          ({where: eq(members.email, email.toLowerCase()), with: {role: true}});
 
         if (!user) return null;
 
@@ -33,7 +34,7 @@ const handler = NextAuth({
           name: user.fullName,
           email: user.email,
           constituency: user.constituency,
-          role: user.role || '',
+          role: user.role?.name || '',
         };
       },
     }),

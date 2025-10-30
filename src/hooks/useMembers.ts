@@ -9,34 +9,30 @@ const generateMockMembers = (): UPNDMember[] => {
   const statuses: MembershipStatus[] = ['Approved', 'Pending Section Review', 'Pending Branch Review', 'Pending Ward Review', 'Pending District Review', 'Rejected'];
   
   for (let i = 1; i <= 150; i++) {
-    const registrationDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-    const province = provinces[Math.floor(Math.random() * provinces.length)];
-    
-    members.push({
-      id: `member-${i}`,
-      membershipId: `UPND${Date.now() + i}`,
-      fullName: `UPND Member ${i}`,
-      nrcNumber: `${Math.floor(Math.random() * 900000) + 100000}/10/1`,
-      dateOfBirth: '1990-01-01',
-      residentialAddress: `Address ${i}, ${province} Province`,
-      phone: `+260${Math.floor(Math.random() * 900000000) + 100000000}`,
-      email: Math.random() > 0.3 ? `member${i}@example.com` : undefined,
-      endorsements: [],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      registrationDate: registrationDate.toISOString(),
-      jurisdiction: {
-        province,
-        district: 'Sample District',
-        constituency: 'Sample Constituency',
-        ward: 'Sample Ward',
-        branch: 'Sample Branch',
-        section: 'Sample Section'
-      },
-      disciplinaryRecords: [],
-      appeals: [],
-      partyCommitment: 'Unity, Work, Progress'
-    });
-  }
+  const registrationDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+  const province = provinces[Math.floor(Math.random() * provinces.length)];
+  const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+  members.push({
+    id: `member-${i}`,
+    membershipId: `UPND${i}`,
+    fullName: `Member ${i}`,
+    nrcNumber: `NRC${i}`,
+    dateOfBirth: '1990-01-01',
+    residentialAddress: 'Some Address',
+    role: { id: `role-${i}`, name: 'Member' },
+    phone: '0000000000',
+    email: `member${i}@example.com`,
+    endorsements: [],
+    status: 'Pending Section Review',
+    registrationDate: registrationDate.toISOString(),
+    jurisdiction: { province, district: '', constituency: '', ward: '', branch: '', section: '' },
+    disciplinaryRecords: [],
+    appeals: [],
+    partyCommitment: 'Unity, Work, Progress'
+  });
+}
+
   
   return members;
 };
@@ -65,10 +61,14 @@ export function useMembers(startDate?: Date, endDate?: Date) {
           nrcNumber: member.nrcNumber,
           dateOfBirth: member.dateOfBirth,
           residentialAddress: member.residentialAddress,
+          role: {
+            id: member.id,
+            name: member.role || null
+          },
           phone: member.phone,
           email: member.email || undefined,
           endorsements: [],
-          status: member.status as MembershipStatus,
+          status: member.status,
           registrationDate: member.registrationDate?.toISOString() || new Date().toISOString(),
           jurisdiction: {
             province: member.province,
@@ -96,7 +96,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
         setMembers(mockMembers);
         
         const totalMembers = mockMembers.length;
-        const pendingApplications = mockMembers.filter(m => m.status.includes('Pending')).length;
+        const pendingApplications = mockMembers.filter(m => m.status?.includes('Pending')).length;
         const approvedMembers = mockMembers.filter(m => m.status === 'Approved').length;
         const rejectedApplications = mockMembers.filter(m => m.status === 'Rejected').length;
         const suspendedMembers = mockMembers.filter(m => m.status === 'Suspended').length;
@@ -163,11 +163,15 @@ export function useMembers(startDate?: Date, endDate?: Date) {
       fullName: memberData.fullName || '',
       nrcNumber: memberData.nrcNumber || '',
       dateOfBirth: memberData.dateOfBirth || '',
+      role: {
+            id: memberData.role?.id || '',
+            name: memberData.role?.name || ''
+          },
       residentialAddress: memberData.residentialAddress || '',
       phone: memberData.phone || '',
       email: memberData.email,
+      status: memberData.status || 'Pending Section Review',
       endorsements: memberData.endorsements || [],
-      status: 'pending section review',
       registrationDate: new Date().toISOString(),
       jurisdiction: memberData.jurisdiction || {
         province: '',

@@ -13,10 +13,12 @@ function RegistrationSuccessContent() {
   const id = params.get('memberId');
   const memberId = id ? decodeURIComponent(id) : '';
 
-  const { data: member, error } = useSWR<UPNDMember[]>(
+  const { data: member, error } = useSWR<UPNDMember>(
     memberId ? `/api/members/${memberId}` : null,
     fetcher
   );
+
+  console.log(member)
 
   const approvalSteps = [
     { step: 1, title: 'Application Received', status: 'completed', description: 'Your application has been successfully submitted' },
@@ -67,7 +69,7 @@ function RegistrationSuccessContent() {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Welcome to UPND, {member[0].fullName}!
+            Welcome to UPND, {member.fullName}!
           </h1>
           <p className="text-xl text-white/90 mb-2">Your membership application has been successfully submitted</p>
           <p className="text-2xl font-bold text-upnd-yellow">Unity, Work, Progress</p>
@@ -79,13 +81,13 @@ function RegistrationSuccessContent() {
             <div>
               <h3 className="text-lg font-bold text-white mb-2">Membership ID</h3>
               <p className="text-2xl font-mono text-upnd-yellow bg-white/10 rounded-lg py-2 px-4">
-                {member[0].membershipId}
+                {member.membershipId}
               </p>
             </div>
             <div>
               <h3 className="text-lg font-bold text-white mb-2">Registration Date</h3>
               <p className="text-xl text-white/90">
-                {member[0].registrationDate ? new Date(member[0].registrationDate).toLocaleDateString() : 'N/A'}
+                {member.registrationDate ? new Date(member.registrationDate).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div>

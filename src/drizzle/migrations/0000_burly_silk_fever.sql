@@ -9,8 +9,7 @@ CREATE TABLE "accounts" (
 	"token_type" text,
 	"scope" text,
 	"id_token" text,
-	"session_state" text,
-	CONSTRAINT "accounts_provider_provider_account_id_pk" PRIMARY KEY("provider","provider_account_id")
+	"session_state" text
 );
 --> statement-breakpoint
 CREATE TABLE "communication_recipients" (
@@ -18,11 +17,11 @@ CREATE TABLE "communication_recipients" (
 	"communication_id" uuid NOT NULL,
 	"member_id" uuid NOT NULL,
 	"status" text DEFAULT 'Pending',
-	"sent_at" timestamp with time zone,
-	"delivered_at" timestamp with time zone,
+	"sent_at" timestamp,
+	"delivered_at" timestamp,
 	"error_message" text,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "communications" (
@@ -36,9 +35,9 @@ CREATE TABLE "communications" (
 	"failed_count" integer DEFAULT 0,
 	"status" text DEFAULT 'Draft',
 	"sent_by" text,
-	"sent_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone
+	"sent_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "disciplinary_cases" (
@@ -53,8 +52,8 @@ CREATE TABLE "disciplinary_cases" (
 	"date_incident" date,
 	"reporting_officer" text NOT NULL,
 	"assigned_officer" text,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	CONSTRAINT "disciplinary_cases_case_number_unique" UNIQUE("case_number")
 );
 --> statement-breakpoint
@@ -62,8 +61,8 @@ CREATE TABLE "districts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"province_id" uuid NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "event_rsvps" (
@@ -71,12 +70,12 @@ CREATE TABLE "event_rsvps" (
 	"event_id" uuid NOT NULL,
 	"member_id" uuid NOT NULL,
 	"response" text DEFAULT 'Maybe',
-	"responded_at" timestamp with time zone DEFAULT now(),
+	"responded_at" timestamp DEFAULT now(),
 	"checked_in" boolean DEFAULT false,
-	"checked_in_at" timestamp with time zone,
+	"checked_in_at" timestamp,
 	"notes" text,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "events" (
@@ -95,19 +94,19 @@ CREATE TABLE "events" (
 	"expected_attendees" integer DEFAULT 0,
 	"actual_attendees" integer DEFAULT 0,
 	"status" text DEFAULT 'Planned',
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "members" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" text,
-	"email_verified" timestamp with time zone,
+	"email_verified" timestamp,
 	"image" text,
 	"password_hash" text NOT NULL,
 	"is_verified" boolean DEFAULT false,
-	"role" text DEFAULT 'member',
-	"last_login_at" timestamp with time zone,
+	"roles" uuid,
+	"last_login_at" timestamp,
 	"membership_id" text NOT NULL,
 	"full_name" text NOT NULL,
 	"nrc_number" text NOT NULL,
@@ -129,11 +128,11 @@ CREATE TABLE "members" (
 	"membership_level" text DEFAULT 'General',
 	"party_role" text,
 	"party_commitment" text,
-	"status" text DEFAULT 'Pending Section Review',
+	"status" uuid,
 	"profile_image" text,
-	"registration_date" timestamp with time zone DEFAULT now(),
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"registration_date" timestamp DEFAULT now(),
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	"notification_preferences" jsonb DEFAULT '{"sms":true,"push":true,"email":true}'::jsonb,
 	CONSTRAINT "members_email_unique" UNIQUE("email"),
 	CONSTRAINT "members_password_hash_unique" UNIQUE("password_hash"),
@@ -149,27 +148,46 @@ CREATE TABLE "membership_cards" (
 	"expiry_date" date,
 	"qr_code" text,
 	"status" text DEFAULT 'Active',
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	"renewal_reminder_sent" boolean DEFAULT false,
-	"renewal_reminder_sent_at" timestamp with time zone,
-	"last_renewed_at" timestamp with time zone
+	"renewal_reminder_sent_at" timestamp,
+	"last_renewed_at" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "permissions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"description" text,
+	CONSTRAINT "permissions_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
 CREATE TABLE "policy_areas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	CONSTRAINT "policy_areas_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
 CREATE TABLE "provinces" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	CONSTRAINT "provinces_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
+CREATE TABLE "role_permissions" (
+	"role_id" uuid NOT NULL,
+	"permission_id" uuid NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "roles" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"description" text,
+	CONSTRAINT "roles_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
@@ -178,20 +196,27 @@ CREATE TABLE "sessions" (
 	"expires" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "satus" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"description" text,
+	CONSTRAINT "satus_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 CREATE TABLE "upnd_positions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"level" text,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	CONSTRAINT "upnd_positions_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
 CREATE TABLE "violation_types" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
 	CONSTRAINT "violation_types_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
@@ -202,6 +227,10 @@ ALTER TABLE "disciplinary_cases" ADD CONSTRAINT "disciplinary_cases_member_id_me
 ALTER TABLE "districts" ADD CONSTRAINT "districts_province_id_provinces_id_fk" FOREIGN KEY ("province_id") REFERENCES "public"."provinces"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "event_rsvps" ADD CONSTRAINT "event_rsvps_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "event_rsvps" ADD CONSTRAINT "event_rsvps_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "members" ADD CONSTRAINT "members_roles_roles_id_fk" FOREIGN KEY ("roles") REFERENCES "public"."roles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "members" ADD CONSTRAINT "members_status_satus_id_fk" FOREIGN KEY ("status") REFERENCES "public"."satus"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "membership_cards" ADD CONSTRAINT "membership_cards_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_role_id_roles_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."roles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_members_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "event_rsvps_event_id_member_id_key" ON "event_rsvps" USING btree ("event_id","member_id");

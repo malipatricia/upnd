@@ -22,11 +22,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <SidebarProvider>
       <AppSidebar />
       <main className=" sm:p-6 w-full">
-        <div className="sm:grid sm:grid-cols-12 bg-background p-2 rounded-lg">
-          <div className="sm:col-span-2">
-          <SidebarTrigger /></div>
-          <div className="sm:col-span-10">
-          <Header/></div></div>
+        <div className="sm:grid sm:grid-cols-12 items-center bg-background p-2 rounded-lg">
+          <div className="sm:col-span-11">
+          <Header/></div>
+          <div className="sm:col-span-1">
+          <SidebarTrigger /></div></div>
         {children}
       </main>
     </SidebarProvider>

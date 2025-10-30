@@ -7,7 +7,7 @@ export interface UPNDMember {
   gender?: 'Male' | 'Female' | 'Other';
   residentialAddress: string;
   phone: string;
-  role: string;
+  role: {id:string;name:string | null;};
   email?: string;
   latitude?: number;
   longitude?: number;
@@ -121,6 +121,18 @@ export interface CaseNote {
   note: string;
   noteDate: string;
   author: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Status {
+  id: string;
+  name: string;
+  description: string;
 }
 
 export interface DisciplinaryRecord {

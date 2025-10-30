@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { UPNDMember, MembershipStatus } from '../../types';
 import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Shield } from 'lucide-react';
 import { getButtonVisibility } from '@/lib/approval';
 import { useSession } from 'next-auth/react';
+import { MembershipStatus, UPNDMember } from '@/types';
 
 interface MemberModalProps {
   member: UPNDMember;
@@ -153,7 +153,7 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
                   <div key={index} className="bg-white rounded-lg p-3 border border-green-200">
                     <div className="text-sm font-medium text-gray-800">{endorsement.endorserName}</div>
                     <div className="text-xs text-gray-600">ID: {endorsement.membershipId}</div>
-                    <div className="text-xs text-gray-600">Date: {endorsement.endorsementDate}</div>
+                    <div className="text-xs text-gray-600">Date: {endorsement.endorsementDate.toString()}</div>
                   </div>
                 ))}
               </div>

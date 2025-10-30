@@ -1,6 +1,6 @@
 {
-  "id": "67bd6c9a-49a9-4bb4-aa80-ffe9f25d0962",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "b06b5725-6fe8-4341-887b-40c997f4f069",
+  "prevId": "1e945710-9666-4613-ba1c-3667f1ca20dc",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -899,9 +899,10 @@
         },
         "status": {
           "name": "status",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'Pending Section Review'"
         },
         "profile_image": {
           "name": "profile_image",
@@ -945,19 +946,6 @@
           "tableTo": "roles",
           "columnsFrom": [
             "roles"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "members_status_satus_id_fk": {
-          "name": "members_status_satus_id_fk",
-          "tableFrom": "members",
-          "tableTo": "satus",
-          "columnsFrom": [
-            "status"
           ],
           "columnsTo": [
             "id"
@@ -1377,8 +1365,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.satus": {
-      "name": "satus",
+    "public.status": {
+      "name": "status",
       "schema": "",
       "columns": {
         "id": {
@@ -1405,8 +1393,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "satus_name_unique": {
-          "name": "satus_name_unique",
+        "status_name_unique": {
+          "name": "status_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "name"

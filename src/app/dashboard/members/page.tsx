@@ -8,7 +8,7 @@ import { EditMemberModal } from './EditMemberModal';
 import { MemberCard } from './MemberCard';
 
 export default function MembersList() {
-  const { members, updateMemberStatus, updateMember, loading } = useMembers();
+  const { members, updateMemberStatus, loading } = useMembers();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<UPNDMember | null>(null);
@@ -120,7 +120,6 @@ export default function MembersList() {
             member={member}
             onViewDetails={() => setSelectedMember(member)}
             onUpdateStatus={updateMemberStatus}
-            onEditMember={() => setSelectedMember(member)}
           />
         ))}
       </div>
@@ -139,7 +138,6 @@ export default function MembersList() {
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
           onUpdateStatus={updateMemberStatus}
-          onUpdateMember={updateMember}
         />
       )}
     </div>

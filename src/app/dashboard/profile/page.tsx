@@ -32,11 +32,11 @@ export default function Dashboard() {
   
   const { members, statistics, loading } = useMembers(dateRange?.startDate, dateRange?.endDate);
   const { cases } = useDisciplinary(dateRange?.startDate, dateRange?.endDate);
-  const {data: session} = useSession()
 
   const handleDateRangeChange = (range: { label: string; value: string; startDate: Date; endDate: Date }) => {
     setDateRange({ startDate: range.startDate, endDate: range.endDate });
   };
+
 
   if (loading) {
     return (
@@ -64,26 +64,26 @@ export default function Dashboard() {
     },
     {
       name: 'Section Review',
-      count: statistics?.statusDistribution['pending section review'] || 0,
-      percentage: ((statistics?.statusDistribution['pending section review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['Pending Section Review'] || 0,
+      percentage: ((statistics?.statusDistribution['Pending Section Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-upnd-yellow'
     },
     {
       name: 'Branch Review',
-      count: statistics?.statusDistribution['pending branch review'] || 0,
-      percentage: ((statistics?.statusDistribution['pending branch review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['Pending Branch Review'] || 0,
+      percentage: ((statistics?.statusDistribution['Pending Branch Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-orange-500'
     },
     {
       name: 'Ward Review',
-      count: statistics?.statusDistribution['pending ward review'] || 0,
-      percentage: ((statistics?.statusDistribution['pending ward review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['Pending Ward Review'] || 0,
+      percentage: ((statistics?.statusDistribution['Pending Ward Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-upnd-yellow'
     },
     {
       name: 'District Review',
-      count: statistics?.statusDistribution['pending district review'] || 0,
-      percentage: ((statistics?.statusDistribution['pending district review'] || 0) / (statistics?.totalMembers || 1)) * 100,
+      count: statistics?.statusDistribution['Pending District Review'] || 0,
+      percentage: ((statistics?.statusDistribution['Pending District Review'] || 0) / (statistics?.totalMembers || 1)) * 100,
       color: 'bg-orange-500'
     },
     {
@@ -134,20 +134,12 @@ export default function Dashboard() {
       onClick: () => console.log('Navigate to settings')
     }
   ];
-  const session_user = session?.user
-  console.log(session_user)
 
   return (
     <div className="p-6 space-y-6">
-      <Header/>
-
-      {/* Date Range Filter */}
-      <div className="flex justify-end mb-4">
-        <DateRangeFilter 
-          onRangeChange={handleDateRangeChange}
-          selectedRange={dateRange ? 'custom' : 'last30'}
-        />
-      </div>
+      <Header onDateRangeChange={setDateRange} selectedRange="last30"
+        statistics={statistics}
+        members={members}/>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard

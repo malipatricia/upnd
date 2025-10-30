@@ -8,12 +8,10 @@ import { useSession } from 'next-auth/react';
 export default function Header() {
   const { data: session } = useSession(); 
   const user = session?.user;
-  console.log(user)
 
   if (!user) return null;
 
   return (
-    <header>
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
@@ -29,7 +27,7 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4 lg:block hidden">
+        <div className="lg:flex items-center space-x-4 lg:block hidden">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-upnd-red-light rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-white" />
@@ -37,9 +35,9 @@ export default function Header() {
             <div className="text-right">
               <p className="text-sm font-medium text-upnd-black">{user.name}</p>
               <p className="text-xs text-gray-500">{user.role}</p>
-              {/* {user.partyPosition && (
-                <p className="text-xs text-upnd-red font-medium">{user.partyPosition}</p>
-              )} */}
+              {user.constituency && (
+                <p className="text-xs text-upnd-red font-medium">{user.constituency}</p>
+              )}
             </div>
           </div>
 
@@ -53,6 +51,5 @@ export default function Header() {
           </button>
         </div>
       </div>
-    </header>
   );
 }

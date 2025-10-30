@@ -13,11 +13,20 @@ import {
   Save,
   RefreshCw
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useSession } from 'next-auth/react';
+import { addPermissionAction, addRoleAction } from '@/server/server.actions';
+import { AddPermissionForm } from './addPermission';
+import { AddRoleForm } from './addRole';
+import ManageRolesPermissionsForm from './setRolesPermissions';
 
 export default function Settings() {
-  const { user, hasPermission } = useAuth();
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('general');
+  const [formType, setFormType] = useState<'role' | 'permission' | 'set' | null>(null);
+
+  // Optional: fetch existing roles/permissions to link
+  const existingRoles: { id: string; name: string; }[] | undefined = []; // fetch from server if needed
+  const existingPermissions: { id: string; name: string; }[] | undefined = []; // fetch from server if needed
   const [settings, setSettings] = useState({
     general: {
       siteName: 'UPND Membership Platform',
@@ -51,6 +60,12 @@ export default function Settings() {
       debugMode: false,
       cacheEnabled: true,
       backupFrequency: 'daily'
+    },
+    permissions: {
+      maintenanceMode: false,
+      debugMode: false,
+      cacheEnabled: true,
+      backupFrequency: 'daily'
     }
   });
 
@@ -59,7 +74,8 @@ export default function Settings() {
     { id: 'branding', label: 'UPND Branding', icon: Palette },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Lock },
-    { id: 'system', label: 'System', icon: Database }
+    { id: 'system', label: 'System', icon: Database },
+    { id: 'permissions', label: 'Permissions', icon: User }
   ];
 
   const handleSettingChange = (category: string, key: string, value: any) => {
@@ -386,7 +402,50 @@ export default function Settings() {
     </div>
   );
 
-  if (!hasPermission('system_settings')) {
+  const renderPermissionSettings = () => (
+     <div className="space-y-6">
+      <h4 className="font-semibold text-upnd-black">Roles & Permissions</h4>
+      <p className="text-sm text-gray-600">Manage access to the UPND platform</p>
+
+      <div className="flex space-x-4">
+        <button
+          onClick={() => setFormType('role')}
+          className="px-4 py-2 bg-upnd-red text-white rounded hover:bg-upnd-red-dark"
+        >
+          Add Role
+        </button>
+        <button
+          onClick={() => setFormType('permission')}
+          className="px-4 py-2 bg-upnd-yellow text-white rounded hover:bg-upnd-yellow-dark"
+        >
+          Add Permission
+        </button>
+        <button
+          onClick={() => setFormType('set')}
+          className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-500"
+        >
+          Manage Roles Permissions
+        </button>
+        
+      </div>
+
+      {/* Render the form conditionally */}
+      {formType === 'permission' && (
+        <AddPermissionForm
+        />
+      )}
+      {formType === 'role' && (
+        <AddRoleForm
+        />
+      )}
+      {formType === 'set' && (
+        <ManageRolesPermissionsForm
+        />
+      )}
+    </div>
+  );
+
+  if (!session?.user) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
@@ -463,6 +522,7 @@ export default function Settings() {
             {activeTab === 'notifications' && renderNotificationSettings()}
             {activeTab === 'security' && renderSecuritySettings()}
             {activeTab === 'system' && renderSystemSettings()}
+            {activeTab === 'permissions' && renderPermissionSettings()}
           </div>
         </div>
       </div>

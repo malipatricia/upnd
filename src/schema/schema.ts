@@ -34,7 +34,7 @@ export const addMemberSchema = z
   password: z.string(),
   confirmPassword: z.string(),
   isVerified: z.boolean().default(false).optional(),
-  role: z.string().default("member").optional(),
+  role: z.string(),
   lastLoginAt: z.date().nullable().optional(),
 
   // Core membership fields
@@ -90,7 +90,6 @@ export const addMemberSchema = z
   membershipLevel: z.string().default("General").optional(),
   partyRole: z.string().optional().nullable(),
   partyCommitment: z.string().optional().nullable(),
-  status: z.string().default("Pending Section Review").optional(),
 
   profileImage: z.string().url().optional().nullable(),
   registrationDate: z.date().optional(),

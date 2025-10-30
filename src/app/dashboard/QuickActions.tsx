@@ -17,7 +17,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-upnd-red">
       <h3 className="text-lg font-semibold text-upnd-black mb-4">Quick Actions</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {actions.map((action, index) => {
           const Icon = action.icon;
           return (

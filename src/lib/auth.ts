@@ -1,14 +1,15 @@
+import NextAuth, { NextAuthOptions } from "next-auth";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/drizzle/db";
 import { members, sessions, accounts } from "@/drizzle/schema";
-import { compare } from "bcrypt";
 import Credentials from "next-auth/providers/credentials";
-import type { NextAuthOptions } from "next-auth";
+import { compare } from "bcrypt";
 import { eq } from "drizzle-orm";
+import { getMemberRolesAndPermissions } from "@/server/server.actions";
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db, {
-    usersTable: members,
+    usersTable: members as any,
     sessionsTable: sessions,
     accountsTable: accounts,
   }),
@@ -34,41 +35,41 @@ export const authOptions: NextAuthOptions = {
         const valid = await compare(credentials.password, user.passwordHash || "");
         if (!valid) return null;
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullName,
-          role: user.role || 'member', // Default to 'member' if role is null/undefined
-        };
+        // return minimal info — roles/permissions handled in JWT callback
+        return { id: user.id, email: user.email, name: user.fullName };
       },
     }),
   ],
+
   callbacks: {
-    async session({ session, token, user }) {
-      // In v4, user is only available when using database sessions or during sign-in
-      if (user) {
-        session.user = {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
-      } else if (token) {
-        // Fallback to token if user is not available
-        session.user = {
-          ...session.user,
-          id: token.id as string,
-          role: token.role as string,
-        };
-      }
-      return session;
-    },
+    // Attach permissions and roles on token creation/use
     async jwt({ token, user }) {
+      // If user just logged in, fetch roles/permissions
       if (user) {
-        token.role = user.role;
+        const { roles, permissions } = await getMemberRolesAndPermissions(user.id);
         token.id = user.id;
+        token.role = roles[0] || "member";
+        token.permissions = permissions;
       }
+
+      // If token already exists, ensure permissions are set
+      if (token.id && !token.permissions) {
+        const { roles, permissions } = await getMemberRolesAndPermissions(token.id);
+        token.role = roles[0] || token.role || "member";
+        token.permissions = permissions;
+      }
+
       return token;
+    },
+
+    // Map JWT to session object
+    async session({ session, token }) {
+      session.user.id = token.id!;
+      session.user.role = token.role;
+      session.user.permissions = token.permissions || [];
+      return session;
     },
   },
 };
+
+export default NextAuth(authOptions);

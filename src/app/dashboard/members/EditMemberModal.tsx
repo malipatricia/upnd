@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { UPNDMember, MembershipStatus } from '../../types';
 import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Edit2, Save } from 'lucide-react';
 import { zambianProvinces, provincialDistricts } from '../../../data/zambia';
 import { useSession } from 'next-auth/react';
+import { MembershipStatus, UPNDMember } from '@/types';
 
 interface EditMemberModalProps {
   member: UPNDMember;
@@ -511,7 +511,7 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
                   <div key={index} className="bg-white rounded-lg p-3 border border-green-200">
                     <div className="text-sm font-medium text-gray-800">{endorsement.endorserName}</div>
                     <div className="text-xs text-gray-600">ID: {endorsement.membershipId}</div>
-                    <div className="text-xs text-gray-600">Date: {endorsement.endorsementDate}</div>
+                    <div className="text-xs text-gray-600">Date: {endorsement.endorsementDate.toString()}</div>
                   </div>
                 ))}
               </div>
