@@ -10,7 +10,7 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  ArrowBigLeft,
+  ArrowLeft,
 } from "lucide-react";
 import {
   Form,
@@ -75,16 +75,24 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-upnd-red via-upnd-red-dark to-upnd-yellow flex items-center justify-center p-4">
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-md">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-md relative">
+        <button
+          onClick={() => router.push('/')}
+          className="absolute top-4 left-4 flex items-center space-x-2 text-gray-600 hover:text-upnd-red transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </button>
+
         {/* Header */}
-            <Link href='/'><ArrowBigLeft/></Link>
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 p-2 shadow-lg">
+            <Link href='/'>
             <img
               src="https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Logo_of_the_United_Party_for_National_Development.svg/400px-Logo_of_the_United_Party_for_National_Development.svg.png"
               alt="UPND Logo"
               className="w-full h-full object-contain"
-            />
+            /></Link>
           </div>
           <h1 className="text-2xl font-bold text-upnd-black mb-2">
             UPND Admin Portal
