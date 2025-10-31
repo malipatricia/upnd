@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { UPNDMember, Statistics, MembershipStatus, Jurisdiction } from '../types';
+import { UPNDMember, Statistics, MembershipStatus, UserRole } from '../types';
 import { getDashboardStatistics, getAllMembers, updateMemberStatus as updateMemberStatusAction, bulkUpdateMemberStatus } from '../server/server.actions';
+import { useAuth } from '@/context/AuthContext';
 
 // Mock data for demonstration
 const generateMockMembers = (): UPNDMember[] => {
@@ -41,6 +42,8 @@ export function useMembers(startDate?: Date, endDate?: Date) {
   const [members, setMembers] = useState<UPNDMember[]>([]);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const actorRole = (user?.role ?? 'member') as UserRole;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -193,7 +196,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
   const updateMemberStatus = async (memberId: string, status: MembershipStatus) => {
     try {
       // Update the database first
-      const result = await updateMemberStatusAction(memberId, status);
+      const result = await updateMemberStatusAction(memberId, status, actorRole);
       
       if (result.error) {
         console.error('Failed to update member status:', result.error);
@@ -214,45 +217,46 @@ export function useMembers(startDate?: Date, endDate?: Date) {
   };
 
   const approveMember = async (memberId: string, currentStatus: MembershipStatus, userRole: string) => {
+    const actingRole = (userRole || actorRole) as UserRole;
     let nextStatus: MembershipStatus;
     
     // Determine next status based on current status and user role
-    if (userRole === 'admin') {
+    if (actingRole === 'admin' || actingRole === 'nationaladmin') {
       // Admin can approve at any level and skip to final approval
       nextStatus = 'Approved';
     } else {
       // Regular approval workflow
       switch (currentStatus) {
         case 'Pending Section Review':
-          if (userRole === 'sectionadmin') {
+          if (actingRole === 'sectionadmin') {
             nextStatus = 'Pending Branch Review';
           } else {
             throw new Error('Only section admins can approve at section level');
           }
           break;
         case 'Pending Branch Review':
-          if (userRole === 'branchadmin') {
+          if (actingRole === 'branchadmin') {
             nextStatus = 'Pending Ward Review';
           } else {
             throw new Error('Only branch admins can approve at branch level');
           }
           break;
         case 'Pending Ward Review':
-          if (userRole === 'wardadmin') {
+          if (actingRole === 'wardadmin') {
             nextStatus = 'Pending District Review';
           } else {
             throw new Error('Only ward admins can approve at ward level');
           }
           break;
         case 'Pending District Review':
-          if (userRole === 'districtadmin') {
+          if (actingRole === 'districtadmin') {
             nextStatus = 'Pending Provincial Review';
           } else {
             throw new Error('Only district admins can approve at district level');
           }
           break;
         case 'Pending Provincial Review':
-          if (userRole === 'provinceadmin') {
+          if (actingRole === 'provinceadmin') {
             nextStatus = 'Approved';
           } else {
             throw new Error('Only province admins can approve at province level');
@@ -273,7 +277,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
   const bulkApprove = async (memberIds: string[]) => {
     try {
       // Update the database first
-      const result = await bulkUpdateMemberStatus(memberIds, 'Approved');
+      const result = await bulkUpdateMemberStatus(memberIds, 'Approved', actorRole);
       
       if (result.error) {
         console.error('Failed to bulk update member status:', result.error);
@@ -345,6 +349,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     updateMemberStatus,
     approveMember,
     getMemberById,
-    bulkApprove
+    bulkApprove,
+    updateMember
   };
 }

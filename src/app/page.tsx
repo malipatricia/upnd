@@ -2,22 +2,22 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import { LandingPage } from '@/components/PublicPortal/LandingPage';
+import { useSession } from 'next-auth/react';
 
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (status === 'authenticated') {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
-  if (isAuthenticated) {
+  if (status === 'authenticated') {
     return null;
   }
 
