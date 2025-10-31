@@ -4,6 +4,7 @@ import { members } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { hasAdminPrivileges } from '@/lib/roles';
 
 export async function GET(
   request: NextRequest,
@@ -37,9 +38,8 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    const role = session?.user?.role;
 
-    if (!session || !role || !['admin', 'nationaladmin'].includes(role)) {
+    if (!session || !hasAdminPrivileges(session.user?.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
