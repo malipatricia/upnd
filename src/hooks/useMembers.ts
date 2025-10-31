@@ -349,6 +349,7 @@ export function useMembers(startDate?: Date, endDate?: Date) {
     updateMemberStatus,
     approveMember,
     getMemberById,
-    bulkApprove
+    bulkApprove,
+    updateMember
   };
 }
