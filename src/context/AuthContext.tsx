@@ -191,10 +191,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (status === 'loading') {
+      const storedUser = getStoredUser();
+      if (storedUser) {
+        setUser(storedUser);
+        setIsAuthenticated(true);
+      }
       return;
     }
 
-    if (session?.user) {
+    if (status === 'authenticated' && session?.user) {
       const normalizedRole = normalizeRole(session.user.role);
       const normalizedUser: UPNDUser = {
         id: session.user.id ?? '',
@@ -213,13 +218,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const storedUser = getStoredUser();
-    if (storedUser) {
-      setUser(storedUser);
-      setIsAuthenticated(true);
-      return;
-    }
-
+    clearStoredUser();
     setUser(null);
     setIsAuthenticated(false);
   }, [session, status]);
