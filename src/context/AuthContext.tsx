@@ -25,6 +25,16 @@ const mockUsers: Record<string, UPNDUser> = {
     isActive: true,
     partyPosition: 'National President'
   },
+  'nationaladmin@upnd.zm': {
+    id: '1A',
+    email: 'nationaladmin@upnd.zm',
+    role: 'nationaladmin',
+    name: 'National Administrator',
+    jurisdiction: 'National',
+    level: 'National',
+    isActive: true,
+    partyPosition: 'National Administrator'
+  },
   'provinceadmin@upnd.zm': {
     id: '2',
     email: 'provinceadmin@upnd.zm',
@@ -79,6 +89,12 @@ const mockUsers: Record<string, UPNDUser> = {
 
 const permissions: Record<UserRole, string[]> = {
   'admin': [
+    'view_all', 'approve_all', 'manage_users', 'generate_reports',
+    'export_data', 'approve_members', 'system_settings', 'manage_disciplinary',
+    'manage_events', 'approve_section', 'approve_branch', 'approve_ward', 
+    'approve_district', 'approve_province'
+  ],
+  'nationaladmin': [
     'view_all', 'approve_all', 'manage_users', 'generate_reports',
     'export_data', 'approve_members', 'system_settings', 'manage_disciplinary',
     'manage_events', 'approve_section', 'approve_branch', 'approve_ward', 

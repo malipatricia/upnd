@@ -1,8 +1,8 @@
 import React from 'react';
-import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon, Edit2 } from 'lucide-react';
-import { MembershipStatus, UPNDMember } from '@/types';
+import { User, MapPin, Phone, Mail, Calendar, Eye, CheckCircle, XCircle, Clock, GraduationCap, Briefcase, Award, Users as UsersIcon } from 'lucide-react';
+import { MembershipStatus, UPNDMember, UserRole } from '@/types';
 import { getButtonVisibility, getNextStatus, getStatusDisplayName } from '@/lib/approval';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/context/AuthContext';
 
 interface MemberCardProps {
   member: UPNDMember;
@@ -40,22 +40,23 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
     }
   };
 
-  // Get button visibility based on user role and member status
-  // For testing purposes, let's use a mock role if the user role is not available
-  const userRole = member.role || 'member';
-  const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
-  const isAdmin = userRole.name === 'admin';
-  console.log(member)
+  const { user } = useAuth();
+  const viewerRole = (user?.role ?? 'member') as UserRole;
+  const buttonVisibility = getButtonVisibility({ role: viewerRole }, member.status);
+  const hasActionAccess = canApprove ?? true;
 
   const handleApprove = () => {
-    const nextStatus = getNextStatus({ role: userRole as any }, member.status);
-    onUpdateStatus(member.id, nextStatus);
+    if (!buttonVisibility.canApprove || !hasActionAccess) return;
+    const nextStatus = getNextStatus({ role: viewerRole }, member.status);
+    if (nextStatus !== member.status) {
+      onUpdateStatus(member.id, nextStatus);
+    }
   };
 
   const handleReject = () => {
+    if (!buttonVisibility.canReject || !hasActionAccess) return;
     onUpdateStatus(member.id, 'Rejected');
   };
-  console.log(member)
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border-l-4 border-upnd-red">
@@ -154,20 +155,24 @@ export function MemberCard({ member, onViewDetails, onUpdateStatus, onApproveMem
           </button>
         </div>
 
-        {member.status !== 'Approved' && member.status !== 'Rejected' && canApprove && onApproveMember && (
+        {hasActionAccess && (buttonVisibility.canApprove || buttonVisibility.canReject) && member.status !== 'Rejected' && (
           <div className="flex space-x-2">
-            <button
-              onClick={() => onApproveMember(member)}
-              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => onUpdateStatus(member.id, 'Rejected')}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-            >
-              Reject
-            </button>
+            {buttonVisibility.canApprove && member.status !== 'Approved' && (
+              <button
+                onClick={onApproveMember ? () => onApproveMember(member) : handleApprove}
+                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                Approve
+              </button>
+            )}
+            {buttonVisibility.canReject && (
+              <button
+                onClick={handleReject}
+                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Reject
+              </button>
+            )}
           </div>
         )}
       </div>

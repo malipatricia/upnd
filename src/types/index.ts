@@ -59,7 +59,8 @@ export type UserRole =
   | 'branchadmin'
   | 'wardadmin'
   | 'districtadmin'
-  | 'provinceadmin';
+  | 'provinceadmin'
+  | 'nationaladmin';
 
 export type OrganizationalLevel = 
   | 'National'
