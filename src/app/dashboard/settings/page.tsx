@@ -12,7 +12,8 @@ import {
   Globe,
   Save,
   RefreshCw,
-  LocateFixed
+  LocateFixed,
+  UsersIcon
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { addPermissionAction, addRoleAction } from '@/server/server.actions';
@@ -20,6 +21,9 @@ import { AddPermissionForm } from './addPermission';
 import { AddRoleForm } from './addRole';
 import ManageRolesPermissionsForm from './setRolesPermissions';
 import ZoneSettings from './zoneSettings';
+import SettingsForm from './updatePlatformSettings';
+import UPNDValues from '../UPNDvalues';
+import { UpdateUserForm } from './updateProfile';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -31,7 +35,7 @@ export default function Settings() {
   const existingPermissions: { id: string; name: string; }[] | undefined = []; // fetch from server if needed
   const [settings, setSettings] = useState({
     general: {
-      siteName: 'UPND Membership Platform',
+      platformName: 'UPND Membership Platform',
       partyName: 'United Party for National Development',
       partyMotto: 'Unity, Work, Progress',
       supportEmail: 'membership@upnd.zm',
@@ -77,8 +81,9 @@ export default function Settings() {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'system', label: 'System', icon: Database },
-    { id: 'permissions', label: 'Permissions', icon: User },
-    { id: 'zone', label: 'Zones', icon: LocateFixed }
+    { id: 'permissions', label: 'Permissions', icon: UsersIcon },
+    { id: 'zone', label: 'Zones', icon: LocateFixed },
+    { id: 'profile', label: 'Profile', icon: User }
   ];
 
   const handleSettingChange = (category: string, key: string, value: any) => {
@@ -98,67 +103,7 @@ export default function Settings() {
 
   const renderGeneralSettings = () => (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-semibold text-upnd-black mb-2">
-          Platform Name
-        </label>
-        <input
-          type="text"
-          value={settings.general.siteName}
-          onChange={(e) => handleSettingChange('general', 'siteName', e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-upnd-black mb-2">
-          Party Name
-        </label>
-        <input
-          type="text"
-          value={settings.general.partyName}
-          onChange={(e) => handleSettingChange('general', 'partyName', e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-upnd-black mb-2">
-          Party Motto
-        </label>
-        <input
-          type="text"
-          value={settings.general.partyMotto}
-          onChange={(e) => handleSettingChange('general', 'partyMotto', e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-        />
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-semibold text-upnd-black mb-2">
-            Support Email
-          </label>
-          <input
-            type="email"
-            value={settings.general.supportEmail}
-            onChange={(e) => handleSettingChange('general', 'supportEmail', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-upnd-black mb-2">
-            Support Phone
-          </label>
-          <input
-            type="tel"
-            value={settings.general.supportPhone}
-            onChange={(e) => handleSettingChange('general', 'supportPhone', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
-          />
-        </div>
-      </div>
+      <SettingsForm/>
     </div>
   );
 
@@ -457,6 +402,14 @@ export default function Settings() {
     </div>
   );
 
+  const renderProfileSettings = () => (
+     <div className="space-y-6">
+      <h4 className="font-semibold text-upnd-black">My Profile</h4>
+
+      <UpdateUserForm/>
+    </div>
+  );
+
   if (!session?.user) {
     return (
       <div className="p-6">
@@ -529,30 +482,11 @@ export default function Settings() {
             {activeTab === 'system' && renderSystemSettings()}
             {activeTab === 'permissions' && renderPermissionSettings()}
             {activeTab === 'zone' && renderZoneSettings()}
+            {activeTab === 'profile' && renderProfileSettings()}
           </div>
         </div>
       </div>
-
-      {/* UPND Values Section */}
-      <div className="bg-gradient-to-r from-upnd-red to-upnd-yellow rounded-xl p-8 text-white">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">UPND Platform Management</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Unity</h3>
-              <p className="text-white/90 text-sm">Unified platform settings for consistent UPND experience</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Work</h3>
-              <p className="text-white/90 text-sm">Efficient configuration tools for optimal platform performance</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Progress</h3>
-              <p className="text-white/90 text-sm">Advanced settings to drive UPND digital transformation</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <UPNDValues/>
     </div>
   );
 }

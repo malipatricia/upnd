@@ -301,6 +301,17 @@ export const membersRelations = relations(members, ({ many, one }) => ({
   })
 }));
 
+export const platformSettings = pgTable("platform_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  platformName: text("platform_name").notNull().default('UPND Membership Platform'),
+  partyName: text("party_name").notNull().default('United Party for National Development'),
+  partyMotto: text("party_motto").notNull().default('Unity, Work, Progress'),
+  supportEmail: text("support_email").notNull().default('membership@upnd.zm'),
+  supportPhone: text("support_phone").notNull().default('+260 211 123 456'),
+  createdAt,
+  updatedAt
+});
+
 export const eventsRelations = relations(events, ({ many }) => ({
   rsvps: many(eventRsvps),
 }));

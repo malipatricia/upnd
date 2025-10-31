@@ -35,38 +35,26 @@ export const authOptions: NextAuthOptions = {
         const valid = await compare(credentials.password, user.passwordHash || "");
         if (!valid) return null;
 
-        // return minimal info — roles/permissions handled in JWT callback
         return { id: user.id, email: user.email, name: user.fullName };
       },
     }),
   ],
 
   callbacks: {
-    // Attach permissions and roles on token creation/use
-    async jwt({ token, user }) {
-      // If user just logged in, fetch roles/permissions
-      if (user) {
+    async session({ session, user }) {
+      // user param is available in database session mode
+      if (session.user && user) {
+        session.user.id = user.id;
+        session.user.email = user.email;
+        session.user.name = user.name;
+      }
+
+      if (user?.id) {
         const { roles, permissions } = await getMemberRolesAndPermissions(user.id);
-        token.id = user.id;
-        token.role = roles[0] || "member";
-        token.permissions = permissions;
+        session.user.role = roles[0] || "member";
+        session.user.permissions = permissions;
       }
 
-      // If token already exists, ensure permissions are set
-      if (token.id && !token.permissions) {
-        const { roles, permissions } = await getMemberRolesAndPermissions(token.id);
-        token.role = roles[0] || token.role || "member";
-        token.permissions = permissions;
-      }
-
-      return token;
-    },
-
-    // Map JWT to session object
-    async session({ session, token }) {
-      session.user.id = token.id!;
-      session.user.role = token.role;
-      session.user.permissions = token.permissions || [];
       return session;
     },
   },

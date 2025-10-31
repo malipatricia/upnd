@@ -116,7 +116,7 @@ export const addMemberSchema = z
         path: ['confirmPassword']
       });
     }
-  });;
+  });
 
   // Province
 export const provinceSchema = z.object({
@@ -128,3 +128,26 @@ export const districtSchema = z.object({
   name: z.string().min(1, "District name is required"),
   provinceId: z.string().uuid("Invalid province ID"),
 });
+
+export const settingsSchema = z.object({
+  platformName: z.string().min(1),
+  partyName: z.string().min(1),
+  partyMotto: z.string().min(1),
+  supportEmail: z.string().email(),
+  supportPhone: z.string().min(1),
+});
+
+export const updateMemberSchema = z.object({
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  password: z.string().optional(),
+  confirmpassword: z.string().optional()
+}).superRefine(({ confirmpassword, password }, ctx) => {
+    if (confirmpassword !== password) {
+      ctx.addIssue({
+        code: "custom",
+        message: "The passwords did not match",
+        path: ['confirmPassword']
+      });
+    }
+  });

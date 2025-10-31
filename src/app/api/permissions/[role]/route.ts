@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/drizzle/db';
 import { eq } from 'drizzle-orm';
-import { roles, rolePermissions, permissions, roleRelations, rolePermissionRelations } from '@/drizzle/schema';
+import { roles } from '@/drizzle/schema';
 
-// Make sure relations are imported and active
-// roleRelations and rolePermissionRelations define how Drizzle should populate nested data
-
-export async function GET(request: NextRequest, context: { params: { role: string } }) {
-  const { role } = context.params; // ✅ safe access
+export async function GET(
+  request: NextRequest,
+  context: { params: { role: string } }
+) {
+  // ✅ Await params if needed
+  const params = await context.params;  // <-- this fixes the Next warning
+  const { role } = params;
 
   console.log('Fetching permissions for role:', role);
 
@@ -23,17 +25,10 @@ export async function GET(request: NextRequest, context: { params: { role: strin
   });
 
   if (!roleRecord) {
-    return NextResponse.json(
-      { error: `Role "${role}" not found`, permissions: [] },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: `Role "${role}" not found` }, { status: 404 });
   }
 
-  const permissionNames = roleRecord.permissions
-    .map(rp => rp.permission?.name)
-    .filter(Boolean);
-
-  console.log('Permissions:', permissionNames);
+  const permissionNames = roleRecord.permissions.map(rp => rp.permission?.name).filter(Boolean);
 
   return NextResponse.json({ role: roleRecord.name, permissions: permissionNames });
 }

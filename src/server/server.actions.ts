@@ -2,10 +2,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { members, disciplinaryCases, roles, permissions, rolePermissions, provinces, districts } from "@/drizzle/schema";
+import { members, disciplinaryCases, roles, permissions, rolePermissions, provinces, districts, platformSettings } from "@/drizzle/schema";
 import { AnyColumn, eq, count, sql, and, gte, lte, like } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
-import { addMemberSchema, districtSchema, loginSchema, provinceSchema } from "@/schema/schema";
+import { addMemberSchema, districtSchema, loginSchema, provinceSchema, settingsSchema, updateMemberSchema } from "@/schema/schema";
 import z from "zod";
 import { MembershipStatus, UserRole } from "@/types";
 
@@ -517,4 +517,51 @@ export async function addDistrictAction(name: string, provinceId: string) {
 export async function deleteDistrictAction(id: string) {
   if (!id) throw new Error("District ID is required");
   await db.delete(districts).where(eq(districts.id, id));
+}
+
+export async function updateSettings(data: unknown) {
+  const parsed = settingsSchema.parse(data);
+
+  const [current] = await db.query.platformSettings.findMany();
+
+  if (current) {
+    await db.update(platformSettings)
+      .set({ ...parsed, updatedAt: new Date() })
+      .where(eq(platformSettings.id, current.id));
+  } else {
+    await db.insert(platformSettings).values(parsed);
+  }
+
+  return { success: true };
+}
+
+export async function updateMemberAction(
+  email: string,
+  values: z.infer<typeof updateMemberSchema>
+) {
+  const parsed = updateMemberSchema.safeParse(values);
+  if (!parsed.success) {
+    return { error: "Invalid input" };
+  }
+  const data = parsed.data;
+
+  try {
+    if(data.password){
+    const passwordHash = await hash(data.password, 10);
+
+    await db
+      .update(members)
+      .set({
+        email: data.email,
+        phone: data.phone,
+        passwordHash: passwordHash,
+      })
+      .where(eq(members.email, email));
+    
+      console.log('DONE: ',data)
+    return { success: true };}
+  } catch (error) {
+    console.error(error);
+    return { error: "Failed to update member" };
+  }
 }
