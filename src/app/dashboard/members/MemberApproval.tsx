@@ -107,7 +107,7 @@ export function MemberApproval() {
     if (!user) return false;
     
     // Admin can approve any member at any level
-    if (user.role === 'admin') return true;
+    if (user.role === 'admin' || user.role === 'nationaladmin') return true;
     
     // Check if user has permission to approve at the current level
     switch (member.status) {

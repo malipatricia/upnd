@@ -7,6 +7,7 @@ import { AnyColumn, eq, count, sql, and, gte, lte, like } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 import { addMemberSchema, districtSchema, loginSchema, provinceSchema } from "@/schema/schema";
 import z from "zod";
+import { MembershipStatus, UserRole } from "@/types";
 
 export async function loginAction(
   unsafeData: z.infer<typeof loginSchema>
@@ -272,10 +273,61 @@ export async function getDisciplinaryCases(startDate?: Date, endDate?: Date) {
   }
 }
 
-import { MembershipStatus } from '../types'; // wherever you define it
+const roleStageMap: Partial<Record<UserRole, { current: MembershipStatus; next?: MembershipStatus }>> = {
+  sectionadmin: { current: 'Pending Section Review', next: 'Pending Branch Review' },
+  branchadmin: { current: 'Pending Branch Review', next: 'Pending Ward Review' },
+  wardadmin: { current: 'Pending Ward Review', next: 'Pending District Review' },
+  districtadmin: { current: 'Pending District Review', next: 'Pending Provincial Review' },
+  provinceadmin: { current: 'Pending Provincial Review', next: 'Approved' },
+};
 
-export async function updateMemberStatus(memberId: string, status: MembershipStatus) {
+function canTransitionStatus(actorRole: UserRole, current: MembershipStatus, target: MembershipStatus): boolean {
+  if (actorRole === 'admin' || actorRole === 'nationaladmin') {
+    return true;
+  }
+
+  const stage = roleStageMap[actorRole];
+
+  if (!stage) {
+    return false;
+  }
+
+  if (current !== stage.current) {
+    return false;
+  }
+
+  if (target === current) {
+    return true;
+  }
+
+  if (stage.next && target === stage.next) {
+    return true;
+  }
+
+  if (target === 'Rejected') {
+    return true;
+  }
+
+  return false;
+}
+
+export async function updateMemberStatus(memberId: string, status: MembershipStatus, actorRole: UserRole = 'member') {
   try {
+    const existing = await db.query.members.findFirst({
+      where: eq(members.id, memberId),
+      columns: { status: true },
+    });
+
+    if (!existing) {
+      return { error: 'Member not found' };
+    }
+
+    const currentStatus = existing.status as MembershipStatus;
+
+    if (!canTransitionStatus(actorRole, currentStatus, status)) {
+      return { error: 'You do not have permission to perform this status change' };
+    }
+
     const result = await db
       .update(members)
       .set({ 
@@ -297,8 +349,12 @@ export async function updateMemberStatus(memberId: string, status: MembershipSta
 }
 
 
-export async function bulkUpdateMemberStatus(memberIds: string[], status: MembershipStatus) {
+export async function bulkUpdateMemberStatus(memberIds: string[], status: MembershipStatus, actorRole: UserRole = 'member') {
   try {
+    if (!(actorRole === 'admin' || actorRole === 'nationaladmin')) {
+      return { error: 'Bulk approvals are restricted to national-level administrators' };
+    }
+
     const result = await db
       .update(members)
       .set({ 

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Shield } from 'lucide-react';
-import { getButtonVisibility } from '@/lib/approval';
-import { useSession } from 'next-auth/react';
-import { MembershipStatus, UPNDMember } from '@/types';
+import React, { useEffect, useState } from 'react';
+import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
+import { getButtonVisibility, getNextStatus } from '@/lib/approval';
+import { MembershipStatus, UPNDMember, UserRole } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 interface MemberModalProps {
   member: UPNDMember;
@@ -13,15 +13,11 @@ interface MemberModalProps {
 export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<MembershipStatus>(member.status);
   const [notes, setNotes] = useState('');
-  const { data: session } = useSession();
-  const user = session?.user;
-  
-  // Get button visibility based on user role and member status
-  const userRole = user?.role || 'member';
-  const buttonVisibility = getButtonVisibility({ role: userRole as any }, member.status);
-  
-  // Check if user can see Approve/Reject buttons (and is not admin)
-  const canSeeApproveReject = (buttonVisibility.canApprove || buttonVisibility.canReject) && userRole !== 'admin';
+  const { user } = useAuth();
+  const viewerRole = (user?.role ?? 'member') as UserRole;
+  const buttonVisibility = getButtonVisibility({ role: viewerRole }, member.status);
+  const canManageStatus = buttonVisibility.canApprove || buttonVisibility.canReject || buttonVisibility.canUpdateStatus;
+  const isElevated = viewerRole === 'admin' || viewerRole === 'nationaladmin';
 
   const statusOptions: { value: MembershipStatus; label: string; color: string }[] = [
     { value: 'Pending Section Review', label: 'Pending Section Review', color: 'text-yellow-600 bg-yellow-50' },
@@ -35,7 +31,60 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
     { value: 'Expelled', label: 'Expelled', color: 'text-red-800 bg-red-100' }
   ];
 
+  const stageMap: Partial<Record<UserRole, { current: MembershipStatus; next?: MembershipStatus }>> = {
+    sectionadmin: { current: 'Pending Section Review', next: 'Pending Branch Review' },
+    branchadmin: { current: 'Pending Branch Review', next: 'Pending Ward Review' },
+    wardadmin: { current: 'Pending Ward Review', next: 'Pending District Review' },
+    districtadmin: { current: 'Pending District Review', next: 'Pending Provincial Review' },
+    provinceadmin: { current: 'Pending Provincial Review', next: 'Approved' },
+  };
+
+  const allowedStatuses = (() => {
+    if (isElevated) {
+      return statusOptions.map(option => option.value);
+    }
+
+    const stage = stageMap[viewerRole];
+    const statuses: MembershipStatus[] = [member.status];
+
+    if (stage) {
+      statuses.push(stage.current);
+      if (stage.next) statuses.push(stage.next);
+    }
+
+    statuses.push('Rejected');
+    return Array.from(new Set(statuses));
+  })();
+  
+  const handleApprove = () => {
+    if (!buttonVisibility.canApprove) return;
+    const nextStatus = getNextStatus({ role: viewerRole }, member.status);
+    if (nextStatus !== member.status) {
+      onUpdateStatus(member.id, nextStatus);
+      onClose();
+    }
+  };
+
+  const handleReject = () => {
+    if (!buttonVisibility.canReject) return;
+    onUpdateStatus(member.id, 'Rejected');
+    onClose();
+  };
+
+  const filteredStatusOptions = statusOptions.filter(option => allowedStatuses.includes(option.value));
+
+  useEffect(() => {
+    if (filteredStatusOptions.length === 0) {
+      return;
+    }
+
+    if (!filteredStatusOptions.some(option => option.value === selectedStatus)) {
+      setSelectedStatus(filteredStatusOptions[0].value);
+    }
+  }, [filteredStatusOptions, selectedStatus]);
+
   const handleStatusUpdate = () => {
+    if (!buttonVisibility.canUpdateStatus || selectedStatus === member.status) return;
     onUpdateStatus(member.id, selectedStatus);
     onClose();
   };
@@ -160,8 +209,8 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
             </div>
           )}
 
-          {/* Status Management - Only show if user can see Approve/Reject buttons */}
-          {canSeeApproveReject && (
+          {/* Status Management */}
+          {canManageStatus && (
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-upnd-black mb-4 flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2 text-upnd-red" />
@@ -187,7 +236,7 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
                     onChange={(e) => setSelectedStatus(e.target.value as MembershipStatus)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-upnd-red focus:border-transparent"
                   >
-                    {statusOptions.map(option => (
+                    {filteredStatusOptions.map(option => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -208,6 +257,34 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
                   placeholder="Add notes about this status change..."
                 />
               </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                {buttonVisibility.canApprove && member.status !== 'Approved' && (
+                  <button
+                    onClick={handleApprove}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    Approve
+                  </button>
+                )}
+                {buttonVisibility.canReject && (
+                  <button
+                    onClick={handleReject}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
+                    Reject
+                  </button>
+                )}
+                {buttonVisibility.canUpdateStatus && (
+                  <button
+                    onClick={handleStatusUpdate}
+                    disabled={selectedStatus === member.status}
+                    className="px-4 py-2 bg-gradient-to-r from-upnd-red to-upnd-yellow text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 text-sm font-medium"
+                  >
+                    Update Status
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -220,17 +297,6 @@ export function MemberModal({ member, onClose, onUpdateStatus }: MemberModalProp
           >
             Close
           </button>
-          
-          <div className="flex space-x-3">
-            {canSeeApproveReject && selectedStatus !== member.status && (
-              <button
-                onClick={handleStatusUpdate}
-                className="px-6 py-2 bg-gradient-to-r from-upnd-red to-upnd-yellow text-white rounded-lg hover:shadow-lg transition-all"
-              >
-                Update Status
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </div>
