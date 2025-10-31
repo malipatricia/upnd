@@ -2,20 +2,20 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import { LoginForm } from '@/components/Auth/LoginForm';
+import { useSession } from 'next-auth/react';
 
 export default function AdminPage() {
-  const { isAuthenticated } = useAuth();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (status === 'authenticated') {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
-  if (isAuthenticated) {
+  if (status === 'authenticated') {
     return null;
   }
 
