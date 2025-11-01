@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
     accountsTable: accounts,
   }),
   session: { strategy: "database" },
-  pages: { signIn: "/login" },
+  pages: { signIn: "/admin" },
   providers: [
     Credentials({
       name: "Credentials",
@@ -35,7 +35,12 @@ export const authOptions: NextAuthOptions = {
         const valid = await compare(credentials.password, user.passwordHash || "");
         if (!valid) return null;
 
-        return { id: user.id, email: user.email, name: user.fullName };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.fullName,
+          constituency: user.constituency,
+        };
       },
     }),
   ],
@@ -47,6 +52,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = user.id;
         session.user.email = user.email;
         session.user.name = user.name;
+        session.user.constituency = (user as any).constituency ?? undefined;
       }
 
       if (user?.id) {
