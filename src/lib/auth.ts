@@ -6,6 +6,7 @@ import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import { eq } from "drizzle-orm";
 import { getMemberRolesAndPermissions } from "@/server/server.actions";
+import { normalizeRole } from "@/lib/roles";
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db, {
@@ -13,7 +14,7 @@ export const authOptions: NextAuthOptions = {
     sessionsTable: sessions,
     accountsTable: accounts,
   }),
-  session: { strategy: "database" },
+  session: { strategy: "jwt" },
   pages: { signIn: "/admin" },
   providers: [
     Credentials({
@@ -35,30 +36,46 @@ export const authOptions: NextAuthOptions = {
         const valid = await compare(credentials.password, user.passwordHash || "");
         if (!valid) return null;
 
+        const { roles, permissions } = await getMemberRolesAndPermissions(user.id);
+        const primaryRole = normalizeRole(roles[0]) ?? "member";
+
         return {
           id: user.id,
           email: user.email,
           name: user.fullName,
           constituency: user.constituency,
+          role: primaryRole,
+          permissions,
         };
       },
     }),
   ],
 
   callbacks: {
-    async session({ session, user }) {
-      // user param is available in database session mode
-      if (session.user && user) {
-        session.user.id = user.id;
-        session.user.email = user.email;
-        session.user.name = user.name;
-        session.user.constituency = (user as any).constituency ?? undefined;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.constituency = (user as any).constituency ?? undefined;
+        token.role = user.role ? normalizeRole(user.role) : token.role ?? "member";
+        token.permissions = user.permissions ?? token.permissions ?? [];
+      } else if (token?.id && (!token.role || !token.permissions)) {
+        const { roles, permissions } = await getMemberRolesAndPermissions(token.id as string);
+        token.role = token.role ?? normalizeRole(roles[0]) ?? "member";
+        token.permissions = token.permissions ?? permissions;
       }
 
-      if (user?.id) {
-        const { roles, permissions } = await getMemberRolesAndPermissions(user.id);
-        session.user.role = roles[0] || "member";
-        session.user.permissions = permissions;
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = (token.id as string) ?? session.user.id;
+        session.user.email = (token.email as string | null | undefined) ?? session.user.email;
+        session.user.name = (token.name as string | null | undefined) ?? session.user.name;
+        session.user.constituency = token.constituency as string | undefined;
+        session.user.role = (token.role as string) ?? session.user.role ?? "member";
+        session.user.permissions = (token.permissions as string[]) ?? session.user.permissions ?? [];
       }
 
       return session;
