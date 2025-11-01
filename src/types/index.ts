@@ -7,7 +7,8 @@ export interface UPNDMember {
   gender?: 'Male' | 'Female' | 'Other';
   residentialAddress: string;
   phone: string;
-  role: {id:string;name:string | null;};
+  role?: { id: string; name: string | null } | null;
+  roleId?: string | null;
   email?: string;
   latitude?: number;
   longitude?: number;
