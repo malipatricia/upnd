@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/drizzle/db';
-import { members } from '@/drizzle/schema';
+import { members, roles } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { hasAdminPrivileges } from '@/lib/roles';
+
+type MemberUpdate = typeof members.$inferUpdate;
 
 export async function GET(
   request: NextRequest,
@@ -55,6 +57,7 @@ export async function PUT(
       residentialAddress,
       jurisdiction,
       partyCommitment,
+      roleId,
     } = body || {};
 
     if (
@@ -87,24 +90,48 @@ export async function PUT(
 
     const normalizedEmail = email?.trim() || null;
     const normalizedCommitment = partyCommitment?.trim() || null;
+    const normalizedRoleId = roleId === undefined
+      ? undefined
+      : (roleId ? String(roleId) : null);
+
+    if (normalizedRoleId !== undefined && normalizedRoleId !== null) {
+      const roleExists = await db.query.roles.findFirst({
+        where: (r, { eq }) => eq(r.id, normalizedRoleId),
+        columns: { id: true },
+      });
+
+      if (!roleExists) {
+        return NextResponse.json(
+          { error: 'Specified role does not exist' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const updatePayload: MemberUpdate = {
+      fullName: fullName.trim(),
+      nrcNumber: nrcNumber.trim(),
+      dateOfBirth: parsedDate,
+      phone: phone.trim(),
+      email: normalizedEmail,
+      residentialAddress: residentialAddress.trim(),
+      province: jurisdiction.province.trim(),
+      district: jurisdiction.district.trim(),
+      constituency: jurisdiction.constituency.trim(),
+      ward: jurisdiction.ward.trim(),
+      branch: jurisdiction.branch.trim(),
+      section: jurisdiction.section.trim(),
+      partyCommitment: normalizedCommitment,
+      updatedAt: new Date(),
+    };
+
+    if (normalizedRoleId !== undefined) {
+      updatePayload.role = normalizedRoleId;
+    }
 
     const [updatedMember] = await db
       .update(members)
-      .set({
-        fullName: fullName.trim(),
-        nrcNumber: nrcNumber.trim(),
-        dateOfBirth: parsedDate,
-        phone: phone.trim(),
-        email: normalizedEmail,
-        residentialAddress: residentialAddress.trim(),
-        province: jurisdiction.province.trim(),
-        district: jurisdiction.district.trim(),
-        constituency: jurisdiction.constituency.trim(),
-        ward: jurisdiction.ward.trim(),
-        branch: jurisdiction.branch.trim(),
-        section: jurisdiction.section.trim(),
-        partyCommitment: normalizedCommitment,
-      })
+      .set(updatePayload)
       .where(eq(members.id, memberId))
       .returning();
 
@@ -112,34 +139,47 @@ export async function PUT(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
+    const memberWithRole = await db.query.members.findFirst({
+      where: (m, { eq }) => eq(m.id, memberId),
+      with: { role: true },
+    });
+
+    if (!memberWithRole) {
+      return NextResponse.json({ error: 'Member not found' }, { status: 404 });
+    }
+
     return NextResponse.json({
       success: true,
       member: {
-        id: updatedMember.id,
-        membershipId: updatedMember.membershipId,
-        fullName: updatedMember.fullName,
-        nrcNumber: updatedMember.nrcNumber,
+        id: memberWithRole.id,
+        membershipId: memberWithRole.membershipId,
+        fullName: memberWithRole.fullName,
+        nrcNumber: memberWithRole.nrcNumber,
         dateOfBirth:
-          typeof updatedMember.dateOfBirth === 'string'
-            ? updatedMember.dateOfBirth
-            : updatedMember.dateOfBirth?.toISOString().split('T')[0],
-        phone: updatedMember.phone,
-        email: updatedMember.email,
-        residentialAddress: updatedMember.residentialAddress,
-        status: updatedMember.status,
+          typeof memberWithRole.dateOfBirth === 'string'
+            ? memberWithRole.dateOfBirth
+            : memberWithRole.dateOfBirth?.toISOString().split('T')[0],
+        phone: memberWithRole.phone,
+        email: memberWithRole.email,
+        residentialAddress: memberWithRole.residentialAddress,
+        status: memberWithRole.status,
         registrationDate:
-          typeof updatedMember.registrationDate === 'string'
-            ? updatedMember.registrationDate
-            : updatedMember.registrationDate?.toISOString(),
+          typeof memberWithRole.registrationDate === 'string'
+            ? memberWithRole.registrationDate
+            : memberWithRole.registrationDate?.toISOString(),
         jurisdiction: {
-          province: updatedMember.province,
-          district: updatedMember.district,
-          constituency: updatedMember.constituency,
-          ward: updatedMember.ward,
-          branch: updatedMember.branch,
-          section: updatedMember.section,
+          province: memberWithRole.province,
+          district: memberWithRole.district,
+          constituency: memberWithRole.constituency,
+          ward: memberWithRole.ward,
+          branch: memberWithRole.branch,
+          section: memberWithRole.section,
         },
-        partyCommitment: updatedMember.partyCommitment,
+        partyCommitment: memberWithRole.partyCommitment,
+        role: memberWithRole.role
+          ? { id: memberWithRole.role.id, name: memberWithRole.role.name }
+          : null,
+        roleId: memberWithRole.role?.id ?? null,
       },
     });
   } catch (error) {
