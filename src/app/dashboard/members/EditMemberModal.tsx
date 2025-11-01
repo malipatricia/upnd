@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Edit2, Save } from 'lucide-react';
+import { X, User, MapPin, Phone, Mail, Calendar, CheckCircle, AlertCircle, Edit2, Save, Shield } from 'lucide-react';
 import { zambianProvinces, provincialDistricts } from '../../../data/zambia';
 import { MembershipStatus, UPNDMember } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -36,12 +36,18 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
     ward: member.jurisdiction.ward,
     branch: member.jurisdiction.branch,
     section: member.jurisdiction.section,
-    partyCommitment: member.partyCommitment
+    partyCommitment: member.partyCommitment || '',
+    roleId: member.role?.id || member.roleId || ''
   });
 
   const [availableDistricts, setAvailableDistricts] = useState<string[]>(
     provincialDistricts[member.jurisdiction.province] || []
   );
+
+  type RoleOption = { id: string; name: string };
+  const [availableRoles, setAvailableRoles] = useState<RoleOption[]>([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+  const [roleFetchError, setRoleFetchError] = useState<string | null>(null);
 
   // Check if user is admin or national admin
   const isAdmin = user?.role === 'admin' || user?.role === 'nationaladmin';
@@ -55,6 +61,60 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
       }
     }
   }, [editedMember.province]);
+
+  useEffect(() => {
+    if (!isAdmin || !onUpdateMember) return;
+
+    let isMounted = true;
+
+    const fetchRoles = async () => {
+      setIsLoadingRoles(true);
+      try {
+        const response = await fetch('/api/roles');
+        if (!response.ok) {
+          throw new Error('Failed to fetch roles');
+        }
+        const data: { id: string; name: string | null }[] = await response.json();
+        if (isMounted) {
+          const normalizedRoles = data.map(role => ({
+            id: role.id,
+            name: role.name ?? 'Unnamed Role',
+          }));
+          setAvailableRoles(normalizedRoles);
+          setRoleFetchError(null);
+        }
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        if (isMounted) {
+          setRoleFetchError('Unable to load roles');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingRoles(false);
+        }
+      }
+    };
+
+    fetchRoles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAdmin, onUpdateMember]);
+
+  useEffect(() => {
+    if (!currentMember.role || !currentMember.role.id) return;
+
+    setAvailableRoles(prev => {
+      if (prev.some(role => role.id === currentMember.role?.id)) {
+        return prev;
+      }
+      return [
+        ...prev,
+        { id: currentMember.role.id, name: currentMember.role.name ?? 'Unnamed Role' },
+      ];
+    });
+  }, [currentMember.role]);
 
   const statusOptions: { value: MembershipStatus; label: string; color: string }[] = [
     { value: 'Pending Section Review', label: 'Pending Section Review', color: 'text-yellow-600 bg-yellow-50' },
@@ -118,7 +178,7 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
 
     setIsSaving(true);
     try {
-      await onUpdateMember(member.id, {
+      const updatedMemberData = await onUpdateMember(member.id, {
         fullName: editedMember.fullName,
         nrcNumber: editedMember.nrcNumber,
         dateOfBirth: editedMember.dateOfBirth,
@@ -133,27 +193,42 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
           branch: editedMember.branch,
           section: editedMember.section
         },
-        partyCommitment: editedMember.partyCommitment
+        partyCommitment: editedMember.partyCommitment,
+        roleId: editedMember.roleId ? editedMember.roleId : null
       });
 
-      setCurrentMember({
-        ...currentMember,
-        fullName: editedMember.fullName,
-        nrcNumber: editedMember.nrcNumber,
-        dateOfBirth: editedMember.dateOfBirth,
-        phone: editedMember.phone,
-        email: editedMember.email,
-        residentialAddress: editedMember.residentialAddress,
-        jurisdiction: {
-          province: editedMember.province,
-          district: editedMember.district,
-          constituency: editedMember.constituency,
-          ward: editedMember.ward,
-          branch: editedMember.branch,
-          section: editedMember.section
-        },
-        partyCommitment: editedMember.partyCommitment
-      });
+      if (updatedMemberData) {
+        setCurrentMember(prev => ({
+          ...prev,
+          fullName: updatedMemberData.fullName,
+          nrcNumber: updatedMemberData.nrcNumber,
+          dateOfBirth: updatedMemberData.dateOfBirth,
+          phone: updatedMemberData.phone,
+          email: updatedMemberData.email || undefined,
+          residentialAddress: updatedMemberData.residentialAddress,
+          jurisdiction: updatedMemberData.jurisdiction,
+          partyCommitment: updatedMemberData.partyCommitment || '',
+          role: updatedMemberData.role ?? null,
+          roleId: updatedMemberData.roleId ?? updatedMemberData.role?.id ?? null,
+        }));
+
+        setEditedMember({
+          fullName: updatedMemberData.fullName,
+          nrcNumber: updatedMemberData.nrcNumber,
+          dateOfBirth: updatedMemberData.dateOfBirth,
+          phone: updatedMemberData.phone,
+          email: updatedMemberData.email || '',
+          residentialAddress: updatedMemberData.residentialAddress,
+          province: updatedMemberData.jurisdiction.province,
+          district: updatedMemberData.jurisdiction.district,
+          constituency: updatedMemberData.jurisdiction.constituency,
+          ward: updatedMemberData.jurisdiction.ward,
+          branch: updatedMemberData.jurisdiction.branch,
+          section: updatedMemberData.jurisdiction.section,
+          partyCommitment: updatedMemberData.partyCommitment || '',
+          roleId: updatedMemberData.roleId ?? updatedMemberData.role?.id ?? '',
+        });
+      }
 
       setIsEditMode(false);
       setErrors({});
@@ -179,7 +254,8 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
       ward: currentMember.jurisdiction.ward,
       branch: currentMember.jurisdiction.branch,
       section: currentMember.jurisdiction.section,
-      partyCommitment: currentMember.partyCommitment
+      partyCommitment: currentMember.partyCommitment || '',
+      roleId: currentMember.role?.id || currentMember.roleId || ''
     });
     setIsEditMode(false);
     setErrors({});
@@ -296,6 +372,40 @@ export function EditMemberModal({ member, onClose, onUpdateStatus, onUpdateMembe
                       </div>
                     ) : (
                       <span className="text-gray-700">DOB: {currentMember.dateOfBirth}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                    {isEditMode ? (
+                      <div className="flex-1">
+                        <label className="text-xs text-gray-500">Role</label>
+                        <select
+                          value={editedMember.roleId}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setEditedMember(prev => ({ ...prev, roleId: value }));
+                          }}
+                          disabled={isLoadingRoles}
+                          className="w-full border border-gray-300 rounded px-2 py-1 focus:border-upnd-red focus:outline-none"
+                        >
+                          <option value="">Select Role</option>
+                          {availableRoles.map(role => (
+                            <option key={role.id} value={role.id}>
+                              {role.name}
+                            </option>
+                          ))}
+                        </select>
+                        {isLoadingRoles && (
+                          <p className="text-xs text-gray-500 mt-1">Loading roles...</p>
+                        )}
+                        {roleFetchError && (
+                          <p className="text-xs text-red-600 mt-1">{roleFetchError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-700">
+                        Role: {currentMember.role?.name ?? 'Not Assigned'}
+                      </span>
                     )}
                   </div>
                   <div className="flex items-center space-x-2">

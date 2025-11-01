@@ -241,8 +241,36 @@ export async function getAllMembers(startDate?: Date, endDate?: Date) {
       : sql`1=1`;
 
     const allMembers = await db
-      .select()
+      .select({
+        id: members.id,
+        membershipId: members.membershipId,
+        fullName: members.fullName,
+        nrcNumber: members.nrcNumber,
+        dateOfBirth: members.dateOfBirth,
+        residentialAddress: members.residentialAddress,
+        phone: members.phone,
+        email: members.email,
+        status: members.status,
+        registrationDate: members.registrationDate,
+        province: members.province,
+        district: members.district,
+        constituency: members.constituency,
+        ward: members.ward,
+        branch: members.branch,
+        section: members.section,
+        partyCommitment: members.partyCommitment,
+        gender: members.gender,
+        education: members.education,
+        occupation: members.occupation,
+        skills: members.skills,
+        membershipLevel: members.membershipLevel,
+        latitude: members.latitude,
+        longitude: members.longitude,
+        roleId: members.role,
+        roleName: roles.name,
+      })
       .from(members)
+      .leftJoin(roles, eq(members.role, roles.id))
       .where(dateFilter)
       .orderBy(members.createdAt);
 

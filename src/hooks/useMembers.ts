@@ -22,6 +22,7 @@ const generateMockMembers = (): UPNDMember[] => {
     dateOfBirth: '1990-01-01',
     residentialAddress: 'Some Address',
     role: { id: `role-${i}`, name: 'Member' },
+    roleId: `role-${i}`,
     phone: '0000000000',
     email: `member${i}@example.com`,
     endorsements: [],
@@ -57,34 +58,47 @@ export function useMembers(startDate?: Date, endDate?: Date) {
         ]);
         
         // Transform database members to UPNDMember format
-        const transformedMembers: UPNDMember[] = membersData.map(member => ({
-          id: member.id,
-          membershipId: member.membershipId,
-          fullName: member.fullName,
-          nrcNumber: member.nrcNumber,
-          dateOfBirth: member.dateOfBirth,
-          residentialAddress: member.residentialAddress,
-          role: {
+        const transformedMembers: UPNDMember[] = membersData.map(member => {
+          const roleId = (member as any).roleId ?? (typeof member.role === 'string' ? member.role : null);
+          const roleName = (member as any).roleName ?? (typeof (member as any).roleName === 'string' ? (member as any).roleName : null);
+          const formattedDateOfBirth = typeof member.dateOfBirth === 'string'
+            ? member.dateOfBirth
+            : member.dateOfBirth?.toISOString().split('T')[0] ?? '';
+          const formattedRegistrationDate = typeof member.registrationDate === 'string'
+            ? member.registrationDate
+            : member.registrationDate?.toISOString() || new Date().toISOString();
+
+          return {
             id: member.id,
-            name: member.role || null
-          },
-          phone: member.phone,
-          email: member.email || undefined,
-          endorsements: [],
-          status: member.status,
-          registrationDate: member.registrationDate?.toISOString() || new Date().toISOString(),
-          jurisdiction: {
-            province: member.province,
-            district: member.district,
-            constituency: member.constituency,
-            ward: member.ward,
-            branch: member.branch,
-            section: member.section
-          },
-          disciplinaryRecords: [],
-          appeals: [],
-          partyCommitment: member.partyCommitment || 'Unity, Work, Progress'
-        }));
+            membershipId: member.membershipId,
+            fullName: member.fullName,
+            nrcNumber: member.nrcNumber,
+            dateOfBirth: formattedDateOfBirth,
+            residentialAddress: member.residentialAddress,
+            roleId: roleId ?? null,
+            role: roleId
+              ? { id: roleId, name: roleName ?? null }
+              : roleName
+                ? { id: '', name: roleName }
+                : null,
+            phone: member.phone,
+            email: member.email || undefined,
+            endorsements: [],
+            status: member.status,
+            registrationDate: formattedRegistrationDate,
+            jurisdiction: {
+              province: member.province,
+              district: member.district,
+              constituency: member.constituency,
+              ward: member.ward,
+              branch: member.branch,
+              section: member.section
+            },
+            disciplinaryRecords: [],
+            appeals: [],
+            partyCommitment: member.partyCommitment || 'Unity, Work, Progress'
+          };
+        });
         
         setMembers(transformedMembers);
         setStatistics({
@@ -166,10 +180,8 @@ export function useMembers(startDate?: Date, endDate?: Date) {
       fullName: memberData.fullName || '',
       nrcNumber: memberData.nrcNumber || '',
       dateOfBirth: memberData.dateOfBirth || '',
-      role: {
-            id: memberData.role?.id || '',
-            name: memberData.role?.name || ''
-          },
+      role: memberData.role ?? (memberData.roleId ? { id: memberData.roleId, name: null } : null),
+      roleId: memberData.roleId ?? memberData.role?.id ?? null,
       residentialAddress: memberData.residentialAddress || '',
       phone: memberData.phone || '',
       email: memberData.email,
@@ -328,7 +340,9 @@ export function useMembers(startDate?: Date, endDate?: Date) {
                   email: result.member.email,
                   residentialAddress: result.member.residentialAddress,
                   jurisdiction: result.member.jurisdiction,
-                  partyCommitment: result.member.partyCommitment
+                  partyCommitment: result.member.partyCommitment,
+                  role: result.member.role ?? null,
+                  roleId: result.member.roleId ?? result.member.role?.id ?? null
                 } 
               : member
           )
